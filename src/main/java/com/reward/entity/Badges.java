@@ -30,9 +30,10 @@ public class Badges {
 
     @Column(nullable = false)
     private Integer points;
-
-    @Column(nullable = true)
-    private LocalDateTime deletedAt;
+    
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
