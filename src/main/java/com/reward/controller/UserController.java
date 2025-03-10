@@ -14,79 +14,56 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    /**
-     * 🔹 Get all users (optionally filtered by role)
-     */
+
     @GetMapping
     public ResponseEntity<ResponseModel<List<UserDTO>>> getAllUsers(@RequestParam(required = false) String role) {
         return ResponseEntity.ok(userService.getAllUsers(role));
     }
 
-    /**
-     * 🔹 Get a user by ID
-     */
     @GetMapping("/{userId}")
     public ResponseEntity<ResponseModel<UserDTO>> getUserById(@PathVariable UUID userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    /**
-     * 🔹 Create a new user
-     */
     @PostMapping
     public ResponseEntity<ResponseModel<String>> createUser(@Valid @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.createUser(userDTO));
     }
 
-    /**
-     * 🔹 Soft delete a user
-     */
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<ResponseModel<String>> softDeleteUser(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.softDeleteUser(userId));
-    }
-
-    /**
-     * 🔹 Update the logged-in user's profile
-     */
     @PutMapping("/profile")
     public ResponseEntity<ResponseModel<String>> updateUserProfile(@RequestParam UUID userId, @Valid @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.updateUserProfile(userId, userDTO));
     }
 
-    /**
-     * 🔹 Get profile image
-     */
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<ResponseModel<String>> softDeleteUser(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.softDeleteUser(userId));
+    }
+
+    @PutMapping("/{userId}/change-password")
+    public ResponseEntity<ResponseModel<String>> changePassword(
+            @PathVariable UUID userId,
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
+        return ResponseEntity.ok(userService.changePassword(userId, oldPassword, newPassword));
+    }
+
     @GetMapping("/{userId}/image")
     public ResponseEntity<ResponseModel<byte[]>> getProfileImage(@PathVariable UUID userId) {
         return ResponseEntity.ok(userService.getUserProfileImage(userId));
     }
 
-    /**
-     * 🔹 Upload profile image
-     */
     @PostMapping("/profile/image")
     public ResponseEntity<ResponseModel<String>> uploadProfileImage(@RequestParam UUID userId, @RequestParam MultipartFile file) throws IOException {
         return ResponseEntity.ok(userService.saveProfileImage(userId, file));
     }
 
-    /**
-     * 🔹 Update profile image
-     */
-    @PutMapping("/profile/image")
-    public ResponseEntity<ResponseModel<String>> updateProfileImage(@RequestParam UUID userId, @RequestParam MultipartFile file) throws IOException {
-        return ResponseEntity.ok(userService.updateProfileImage(userId, file));
-    }
-
-    /**
-     * 🔹 Remove profile image
-     */
     @DeleteMapping("/profile/image")
     public ResponseEntity<ResponseModel<String>> deleteProfileImage(@RequestParam UUID userId) {
         return ResponseEntity.ok(userService.deleteProfileImage(userId));

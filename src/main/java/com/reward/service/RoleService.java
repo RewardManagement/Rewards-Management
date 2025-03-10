@@ -25,18 +25,6 @@ public class RoleService {
         return ResponseModel.success(200, "Roles retrieved successfully", roles);
     }
 
-    public ResponseModel<Role> getRoleById(UUID roleId) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + roleId));
-        return ResponseModel.success(200, "Role retrieved successfully", role);
-    }
-
-    public ResponseModel<Role> getRoleByName(String roleName) {
-        Role role = roleRepository.findByRoleName(roleName)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
-        return ResponseModel.success(200, "Role retrieved successfully", role);
-    }
-
     @Transactional
     public ResponseModel<Role> createRole(Role role) {
         if (roleRepository.existsByRoleName(role.getRoleName())) {
@@ -44,6 +32,21 @@ public class RoleService {
         }
         Role savedRole = roleRepository.save(role);
         return ResponseModel.success(201, "Role created successfully", savedRole);
+    }
+
+    @Transactional
+    public ResponseModel<Role> updateRole(UUID roleId, String newRoleName) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + roleId));
+
+        if (roleRepository.existsByRoleName(newRoleName)) {
+            return ResponseModel.error(400, "Role name already exists");
+        }
+
+        role.setRoleName(newRoleName);
+        Role updatedRole = roleRepository.save(role);
+
+        return ResponseModel.success(200, "Role updated successfully", updatedRole);
     }
 
     @Transactional

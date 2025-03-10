@@ -59,12 +59,13 @@ public class UserService {
         return ResponseModel.success(200, "User retrieved successfully", userMapper.toDTO(user));
     }
 
-
-    //now no password
-
     public ResponseModel<String> createUser(UserDTO userDTO) {
-        User user = userMapper.toEntity(userDTO); // Convert DTO to Entity
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
+            return ResponseModel.error(400, "Password is required");
+        }
+        
+        User user = userMapper.toEntity(userDTO); 
+        System.out.println("password"+user.getPassword());
         Role role = roleRepository.findById(userDTO.getRoleId())
             .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
@@ -141,11 +142,6 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseModel<String> updateProfileImage(UUID userId, MultipartFile file) throws IOException {
-        return saveProfileImage(userId, file);
-    }
-
-    @Transactional
     public ResponseModel<String> deleteProfileImage(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -162,7 +158,6 @@ public class UserService {
 
     public String loginUser (String email,String password){
         Authentication authentication = authenticationManager.authenticate (new UsernamePasswordAuthenticationToken(email,password));
-        //SecurityContextHolder.getContext().setAuthentication(authentication);
         if (authentication.isAuthenticated()) {
             return jwtutil.generateToken(email);
         } else {

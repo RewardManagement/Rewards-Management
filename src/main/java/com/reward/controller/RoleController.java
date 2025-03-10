@@ -3,7 +3,6 @@ package com.reward.controller;
 import com.reward.entity.Role;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.RoleService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/roles")
+@RequestMapping("/api/roles")
 @RequiredArgsConstructor
 public class RoleController {
 
@@ -24,24 +23,15 @@ public class RoleController {
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 
-
-    @GetMapping("/{roleId}")
-    public ResponseEntity<ResponseModel<Role>> getRoleById(@PathVariable UUID roleId) {
-        return ResponseEntity.ok(roleService.getRoleById(roleId));
-    }
-
-
-    @GetMapping("/name/{roleName}")
-    public ResponseEntity<ResponseModel<Role>> getRoleByName(@PathVariable String roleName) {
-        return ResponseEntity.ok(roleService.getRoleByName(roleName));
-    }
-
-
     @PostMapping
-    public ResponseEntity<ResponseModel<Role>> createRole(@Valid @RequestBody Role role) {
+    public ResponseEntity<ResponseModel<Role>> createRole(@RequestBody Role role) {
         return ResponseEntity.ok(roleService.createRole(role));
     }
 
+    @PutMapping("/{roleId}")
+    public ResponseEntity<ResponseModel<Role>> updateRole(@PathVariable UUID roleId, @RequestParam String newRoleName) {
+        return ResponseEntity.ok(roleService.updateRole(roleId, newRoleName));
+    }
 
     @DeleteMapping("/{roleId}")
     public ResponseEntity<ResponseModel<String>> deleteRole(@PathVariable UUID roleId) {

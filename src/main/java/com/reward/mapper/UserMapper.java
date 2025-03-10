@@ -3,11 +3,18 @@ package com.reward.mapper;
 import com.reward.dto.UserDTO;
 import com.reward.entity.Role;
 import com.reward.entity.User;
+
+import lombok.RequiredArgsConstructor;
+
 import java.util.Base64;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
+    private final PasswordEncoder passwordEncoder;
 
     public UserDTO toDTO(User user) {
         return UserDTO.builder()
@@ -29,6 +36,7 @@ public class UserMapper {
                 .id(userDTO.getId())
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
+                .password(passwordEncoder.encode(userDTO.getPassword())) 
                 .phoneNo(userDTO.getPhoneNo())
                 .department(userDTO.getDepartment())
                 .year(userDTO.getYear())
