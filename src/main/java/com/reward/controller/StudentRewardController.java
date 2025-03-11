@@ -1,7 +1,6 @@
 package com.reward.controller;
 
 import com.reward.dto.StudentRewardDTO;
-
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.StudentRewardService;
 import org.springframework.http.HttpStatus;
@@ -23,10 +22,10 @@ public class StudentRewardController {
 
     // ✅ GET: Fetch all rewards redeemed by a student
    @GetMapping("/{studentId}/rewards")
-public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
-    ResponseModel<List<StudentRewardDTO>> response = studentRewardService.getStudentRewards(studentId);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
-}
+    public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
+        ResponseModel<List<StudentRewardDTO>> response = studentRewardService.getStudentRewards(studentId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
     @PostMapping("/{studentId}/rewards/{rewardId}/redeem")
     public ResponseEntity<ResponseModel<String>> redeemReward(
