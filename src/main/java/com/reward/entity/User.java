@@ -44,8 +44,13 @@ public class User {
     @Column(nullable = true)
     private byte[] profilePicture; 
 
-    @Column(nullable = true)
-    private LocalDateTime deletedAt; 
+    @ManyToOne
+    @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false, foreignKey = @ForeignKey(name = "fk_user_role"))
+    private Role role; 
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isDeleted = false;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
