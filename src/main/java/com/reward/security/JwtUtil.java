@@ -1,18 +1,16 @@
 package com.reward.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.io.Decoders;
 
-import java.security.NoSuchAlgorithmException;
-
-import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
@@ -20,19 +18,13 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-    private String secretKey  = "CF789";
+    @Value("${jwt.secret}") 
+    private String secretKeyBase64;
 
-    public JwtUtil(){
-        try{
-            KeyGenerator keyGen =KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk =keyGen.generateKey();
-            secretKey= Base64.getEncoder().encodeToString(sk.getEncoded());
-        }
-        catch (NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
-        }
-        
-    }
+    @Value("${jwt.expiration}") 
+    private long expirationMs;
+
+    private SecretKey secretKey;
 
     public String generateToken(String email){
 
@@ -43,18 +35,18 @@ public class JwtUtil {
             .add(claims)
             .subject(email)
             .issuedAt(new Date(System.currentTimeMillis()))
-            .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
+            .expiration(new Date(System.currentTimeMillis() + expirationMs)) 
             .and()
-            .signWith(getKey())
+            .signWith(secretKey)
             .compact();
 
     }
 
-    private SecretKey getKey(){
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKeyBase64);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
-
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -66,7 +58,7 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getKey())
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
