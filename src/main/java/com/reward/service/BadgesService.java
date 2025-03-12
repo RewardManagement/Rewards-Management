@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.Base64;
 
 @Service
 public class BadgesService {
@@ -50,6 +50,7 @@ public class BadgesService {
             // Convert DTO to entity and save
             Badges badge = BadgesMapper.toEntity(badgesDTO);
             badge.setId(null); // Ensure a new ID is generated
+            badge.setImage(image.getBytes());
             Badges savedBadge = badgesRepository.save(badge);
     
             return new ResponseModel<>(HttpStatus.CREATED.value(), "SUCCESS", "Badge created successfully", BadgesMapper.toDTO(savedBadge));
@@ -63,9 +64,15 @@ public class BadgesService {
         if (optionalBadge.isPresent()) {
             Badges badge = optionalBadge.get();
             badge.setName(badgesDTO.getName());
-            badge.setImage(badgesDTO.getImage() != null ? Base64.getDecoder().decode(badgesDTO.getImage()) :null);
             badge.setDescription(badgesDTO.getDescription());
             badge.setPoints(badgesDTO.getPoints());
+            if (image != null && !image.isEmpty()) {
+                try {
+                    badge.setImage(image.getBytes());
+                } catch (IOException e) {
+                    return new ResponseModel<>(HttpStatus.BAD_REQUEST.value(), "ERROR", "Failed to process image", null);
+                }
+            }
             
             Badges updatedBadge = badgesRepository.save(badge);
 

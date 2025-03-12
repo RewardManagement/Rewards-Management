@@ -29,20 +29,20 @@ public class Certificates {
 
    
     @Lob
-    @Column(name = "file_data", nullable = true) 
+    @Column(name = "file_data", nullable = false) 
     private byte[] fileData; 
 
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false; 
 
-    @Column(name = "points", nullable = false)
+    @Column(name = "points")
     private Integer points;
 
     @Column(name = "status", nullable = false)
     private String status; // "Pending", "Approved", "Rejected"
 
-    @Column(name = "category", nullable = false)
+    @Column(name = "category")
     private String category; // "Technical", "Cultural", "Sports"
 
     @Column(updatable = false)

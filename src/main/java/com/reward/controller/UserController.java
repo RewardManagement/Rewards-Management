@@ -64,6 +64,13 @@ public class UserController {
         return ResponseEntity.ok(userService.saveProfileImage(userId, file));
     }
 
+    @PutMapping("/profile/image")
+    public ResponseEntity<ResponseModel<String>> updateProfileImage(
+            @RequestParam UUID userId, 
+            @RequestParam MultipartFile file) throws IOException {
+        return ResponseEntity.ok(userService.updateProfileImage(userId, file));
+    }
+    
     @DeleteMapping("/profile/image")
     public ResponseEntity<ResponseModel<String>> deleteProfileImage(@RequestParam UUID userId) {
         return ResponseEntity.ok(userService.deleteProfileImage(userId));

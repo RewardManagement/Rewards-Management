@@ -58,15 +58,13 @@ public class CertificatesService {
     }
 
     @Transactional
-    public ResponseModel<String> createCertificate(UUID studentId, String category, String status, int points, MultipartFile file) {
+    public ResponseModel<String> createCertificate(UUID studentId, MultipartFile file) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         Certificates certificates = new Certificates();
         certificates.setStudent(student);
-        certificates.setCategory(category);
-        certificates.setStatus(status);
-        certificates.setPoints(points);
+        certificates.setStatus("pending");
 
         // Handle file upload if provided
         if (file != null && !file.isEmpty()) {
@@ -108,17 +106,6 @@ public class CertificatesService {
         return ResponseModel.success(200, "Certificate updated successfully", null);
     }
     
-    
-    @Transactional
-    public ResponseModel<String> uploadCertificateFile(UUID certificateId, MultipartFile file) throws IOException {
-        Certificates certificate = certificateRepository.findById(certificateId)
-                .orElseThrow(() -> new ResourceNotFoundException("Certificate not found"));
-
-        certificate.setFileData(file.getBytes()); // Store file as byte array
-        certificateRepository.save(certificate);
-
-        return ResponseModel.success(201, "Certificate file uploaded successfully", null);
-    }
 
     @Transactional
     public ResponseModel<byte[]> getCertificateFile(UUID certificateId) {

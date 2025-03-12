@@ -37,22 +37,14 @@ public class CertificatesController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseModel<String>> createCertificate(
             @RequestParam("studentId") UUID studentId,
-            @RequestParam("category") String category,
-            @RequestParam("status") String status,
-            @RequestParam("points") int points,
             @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
 
-        return ResponseEntity.ok(certificatesService.createCertificate(studentId, category, status, points, file));
+        return ResponseEntity.ok(certificatesService.createCertificate(studentId, file));
     }
 
     @DeleteMapping("/{certificateId}")
     public ResponseEntity<ResponseModel<String>> deleteCertificate(@PathVariable UUID certificateId) {
         return ResponseEntity.ok(certificatesService.deleteCertificate(certificateId));
-    }
-
-    @PostMapping("/upload")
-    public ResponseEntity<ResponseModel<String>> uploadCertificateFile(@RequestParam UUID certificateId, @RequestParam MultipartFile file) throws IOException {
-        return ResponseEntity.ok(certificatesService.uploadCertificateFile(certificateId, file));
     }
 
     @PutMapping("/{certificateId}")
