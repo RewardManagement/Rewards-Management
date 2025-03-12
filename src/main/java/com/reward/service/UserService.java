@@ -36,6 +36,7 @@ public class UserService {
     private final JwtUtil jwtutil;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public ResponseModel<List<UserDTO>> getAllUsers(String roleName) {
         List<User> users = (roleName == null)
                 ? userRepository.findByIsDeletedFalse()
@@ -52,6 +53,7 @@ public class UserService {
         return ResponseModel.success(200, "Users retrieved successfully", userDTOs);
     }
 
+    @Transactional
     public ResponseModel<UserDTO> getUserById(UUID userId) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -139,6 +141,17 @@ public class UserService {
         userRepository.save(user);
 
         return ResponseModel.success(201, "Profile Image Uploaded", null);
+    }
+
+    @Transactional
+    public ResponseModel<String> updateProfileImage(UUID userId, MultipartFile file) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setProfilePicture(file.getBytes());
+        userRepository.save(user);
+
+        return ResponseModel.success(200, "Profile Image Updated Successfully", null);
     }
 
     @Transactional
