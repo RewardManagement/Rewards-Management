@@ -20,7 +20,7 @@ public class RoleService {
     public ResponseModel<List<Role>> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
         if (roles.isEmpty()) {
-            return ResponseModel.error(404, "No roles found");
+            return ResponseModel.error(404, "No roles found",null);
         }
         return ResponseModel.success(200, "Roles retrieved successfully", roles);
     }
@@ -28,7 +28,7 @@ public class RoleService {
     @Transactional
     public ResponseModel<Role> createRole(Role role) {
         if (roleRepository.existsByRoleName(role.getRoleName())) {
-            return ResponseModel.error(400, "Role already exists");
+            return ResponseModel.error(400, "Role already exists",null);
         }
         Role savedRole = roleRepository.save(role);
         return ResponseModel.success(201, "Role created successfully", savedRole);
@@ -40,7 +40,7 @@ public class RoleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + roleId));
 
         if (roleRepository.existsByRoleName(newRoleName)) {
-            return ResponseModel.error(400, "Role name already exists");
+            return ResponseModel.error(400, "Role name already exists",null);
         }
 
         role.setRoleName(newRoleName);

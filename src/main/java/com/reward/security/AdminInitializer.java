@@ -8,13 +8,17 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional; // Import this
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Configuration
 public class AdminInitializer {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Bean
     public CommandLineRunner initAdmin(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
@@ -23,7 +27,9 @@ public class AdminInitializer {
 
     @Transactional
     public void createAdminUser(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
-        boolean adminExists = userRepository.existsByRoleName("ADMIN");
+        entityManager.clear();
+
+        boolean adminExists = userRepository.existsByRoleNameAndIsDeletedFalse("ADMIN");
         if (adminExists) {
             System.out.println("Admin user already exists.");
             return;
@@ -36,10 +42,10 @@ public class AdminInitializer {
         }
 
         User admin = User.builder()
-                .id(UUID.randomUUID())
                 .name("admin")
                 .email("admin@example.com")
                 .password(passwordEncoder.encode("admin@123"))
+                .phoneNo("+0000000000")
                 .role(adminRole.get())
                 .build();
 
