@@ -5,6 +5,8 @@ import com.reward.entity.User;
 import com.reward.entity.Role;
 import com.reward.exception.ResourceNotFoundException;
 import com.reward.exception.UnauthorizedException;
+import com.reward.exception.AlreadyExistsException;
+import com.reward.exception.BadRequestException; 
 import com.reward.mapper.UserMapper;
 import com.reward.repository.UserRepository;
 import com.reward.repository.RoleRepository;
@@ -12,7 +14,6 @@ import com.reward.responsemodel.ResponseModel;
 import com.reward.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,10 @@ public class UserService {
 
     @Transactional
     public ResponseModel<List<UserDTO>> getAllUsers(String roleName) {
+        if (roleName != null && !roleRepository.existsByRoleName(roleName)) {
+            throw new ResourceNotFoundException("Invalid role provided");
+        }
+
         List<User> users = (roleName == null)
                 ? userRepository.findByIsDeletedFalse()
                 : userRepository.findByRoleName(roleName);
@@ -53,6 +58,7 @@ public class UserService {
         return ResponseModel.success(200, "Users retrieved successfully", userDTOs);
     }
 
+
     @Transactional
     public ResponseModel<UserDTO> getUserById(UUID userId) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
@@ -61,39 +67,90 @@ public class UserService {
         return ResponseModel.success(200, "User retrieved successfully", userMapper.toDTO(user));
     }
 
-    public ResponseModel<String> createUser(UserDTO userDTO) {
-        if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
-            return ResponseModel.error(400, "Password is required");
-        }
-        
-        User user = userMapper.toEntity(userDTO); 
-        System.out.println("password"+user.getPassword());
-        Role role = roleRepository.findById(userDTO.getRoleId())
-            .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+    @Transactional
+    public ResponseModel<String> createOrUpdateUser(UUID userId, String roleName, UserDTO userDTO, MultipartFile image) throws IOException {
 
-    
-        user.setRole(role);
-        userRepository.save(user);
-        return ResponseModel.success(201, "User created successfully", null);
+        Role role = roleRepository.findByRoleName(roleName)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid role provided"));
+
+        User teacher = null;
+
+        if ("STUDENT".equalsIgnoreCase(roleName)) {
+            if (userDTO.getTeacherId() == null) {
+                throw new BadRequestException("Teacher ID is required for students"); // ✅ Throw BadRequestException
+            }
+            if (userDTO.getYear() == null) {
+                throw new BadRequestException("Year is required for students"); // ✅ Throw BadRequestException
+            }
+
+            teacher = userRepository.findByIdAndIsDeletedFalse(userDTO.getTeacherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+        } else {
+            if (userDTO.getTeacherId() != null) {
+                throw new BadRequestException("Teacher ID should not be provided for non-students"); // ✅ Validation
+            }
+            if (userDTO.getYear() != null) {
+                throw new BadRequestException("Year should not be provided for non-students"); // ✅ Validation
+            }
+        }
+
+        if (userId == null) {
+            boolean userExists = userRepository.existsByEmailAndIsDeletedFalse(userDTO.getEmail());
+            if (userExists) {
+                throw new AlreadyExistsException("A user with this email already exists"); // 🔹 Throw UserAlreadyExistsException
+            }
+            if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
+                throw new BadRequestException("Password is required"); // ✅ Changed to throw BadRequestException
+            }
+            User newUser = userMapper.toEntity(userDTO);
+            newUser.setRole(role);
+            newUser.setTeacher(teacher);
+
+            if (image != null && !image.isEmpty()) {
+                newUser.setProfilePicture(image.getBytes()); // ✅ Set the image only if valid
+            }            
+
+            userRepository.save(newUser);
+            return ResponseModel.success(201, "User created successfully", null);
+        } else {
+            User existingUser = userRepository.findByIdAndIsDeletedFalse(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            existingUser.setName(userDTO.getName());
+            existingUser.setEmail(userDTO.getEmail());
+            existingUser.setPhoneNo(userDTO.getPhoneNo());
+            existingUser.setDepartment(userDTO.getDepartment());
+
+            if ("STUDENT".equalsIgnoreCase(roleName)) {
+                existingUser.setTeacher(teacher);
+                existingUser.setYear(userDTO.getYear());
+            }
+
+            userRepository.save(existingUser);
+            return ResponseModel.success(200, "User updated successfully", null);
+        }
     }
-    
+
     @Transactional
     public ResponseModel<String> softDeleteUser(UUID userId) {
-        if (!userRepository.existsById(userId)) {
+        if (!userRepository.existsByIdAndIsDeletedFalse(userId)) {
             throw new ResourceNotFoundException("User not found");
         }
         userRepository.softDeleteUser(userId);
         return ResponseModel.success(200, "User soft deleted successfully", null);
     }
 
-    
     @Transactional
     public ResponseModel<String> changePassword(UUID userId, String oldPassword, String newPassword) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new UnauthorizedException("Incorrect old password");
+            throw new UnauthorizedException("Incorrect old password"); // ✅ Throw UnauthorizedException
+        }
+
+        if (!newPassword.matches("^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,}$")) {
+            throw new BadRequestException("New password must be at least 6 characters long, contain 1 special character, and 1 number");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -102,51 +159,14 @@ public class UserService {
         return ResponseModel.success(200, "Password updated successfully", null);
     }
 
-
-    @Transactional
-    public ResponseModel<String> updateUserProfile(UUID userId, UserDTO userDTO) {
-        User user = userRepository.findByIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setPhoneNo(userDTO.getPhoneNo());
-        user.setDepartment(userDTO.getDepartment());
-        user.setYear(userDTO.getYear());
-
-        userRepository.save(user);
-        return ResponseModel.success(200, "User profile updated successfully", null);
-    }
-
-
-    @Transactional
-    public ResponseModel<byte[]> getUserProfileImage(UUID userId) {
-    User user = userRepository.findByIdAndIsDeletedFalse(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    if (user.getProfilePicture() == null) {
-        throw new ResourceNotFoundException("Profile image not found");
-    }
-
-    return ResponseModel.success(200, "Profile image retrieved", user.getProfilePicture());
-}
-
-
-    @Transactional
-    public ResponseModel<String> saveProfileImage(UUID userId, MultipartFile file) throws IOException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        user.setProfilePicture(file.getBytes());
-        userRepository.save(user);
-
-        return ResponseModel.success(201, "Profile Image Uploaded", null);
-    }
-
     @Transactional
     public ResponseModel<String> updateProfileImage(UUID userId, MultipartFile file) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Profile image file is required"); // ✅ Added validation
+        }
 
         user.setProfilePicture(file.getBytes());
         userRepository.save(user);
@@ -155,26 +175,21 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseModel<String> deleteProfileImage(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public ResponseModel<String> loginUser(String email, String password) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
 
-        if (user.getProfilePicture() == null) {
-            throw new ResourceNotFoundException("No profile image found");
+            if (authentication.isAuthenticated()) {
+                String token = jwtutil.generateToken(email);
+                return ResponseModel.success(200, "Login successful", token);
+            }
+        } catch (Exception ex) {
+            throw new UnauthorizedException("Invalid email or password"); // ✅ Throwing UnauthorizedException
         }
 
-        user.setProfilePicture(null);
-        userRepository.save(user);
-
-        return ResponseModel.success(200, "Profile Image Removed", null);
+        throw new UnauthorizedException("Invalid email or password"); // Fallback (should never reach)
     }
 
-    public String loginUser (String email,String password){
-        Authentication authentication = authenticationManager.authenticate (new UsernamePasswordAuthenticationToken(email,password));
-        if (authentication.isAuthenticated()) {
-            return jwtutil.generateToken(email);
-        } else {
-            return "fail";
-        }
-    }
 }

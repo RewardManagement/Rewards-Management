@@ -35,16 +35,16 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @PostMapping
-    public ResponseEntity<ResponseModel<String>> createUser(@Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.createUser(userDTO));
+    @PostMapping("/user")
+    public ResponseEntity<ResponseModel<String>> createOrUpdateUser(
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) String roleName,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @Valid @ModelAttribute UserDTO userDTO
+    ) throws IOException {
+        return ResponseEntity.ok(userService.createOrUpdateUser(userId, roleName, userDTO, image));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @PutMapping("/profile")
-    public ResponseEntity<ResponseModel<String>> updateUserProfile(@RequestParam UUID userId, @Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateUserProfile(userId, userDTO));
-    }
 
     @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{userId}")
@@ -62,26 +62,11 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @GetMapping("/{userId}/image")
-    public ResponseEntity<ResponseModel<byte[]>> getProfileImage(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.getUserProfileImage(userId));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @PostMapping("/profile/image")
-    public ResponseEntity<ResponseModel<String>> uploadProfileImage(@RequestParam UUID userId, @RequestParam MultipartFile file) throws IOException {
-        return ResponseEntity.ok(userService.saveProfileImage(userId, file));
-    }
-
     @PutMapping("/profile/image")
     public ResponseEntity<ResponseModel<String>> updateProfileImage(
             @RequestParam UUID userId, 
-            @RequestParam MultipartFile file) throws IOException {
+            @RequestParam(required = false) MultipartFile file) throws IOException {
         return ResponseEntity.ok(userService.updateProfileImage(userId, file));
     }
     
-    @DeleteMapping("/profile/image")
-    public ResponseEntity<ResponseModel<String>> deleteProfileImage(@RequestParam UUID userId) {
-        return ResponseEntity.ok(userService.deleteProfileImage(userId));
-    }
 }

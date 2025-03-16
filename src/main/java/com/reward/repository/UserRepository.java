@@ -18,9 +18,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmailAndIsDeletedFalse(String email);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.role.roleName = :roleName")
-    boolean existsByRoleName(@Param("roleName") String roleName);
+    boolean existsByIdAndIsDeletedFalse(UUID id);
 
+
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.role.roleName = :roleName AND u.isDeleted = false")
+    boolean existsByRoleNameAndIsDeletedFalse(@Param("roleName") String roleName);
 
     List<User> findByIsDeletedFalse();
 
