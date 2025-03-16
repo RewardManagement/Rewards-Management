@@ -20,7 +20,8 @@ public class ResponseModel<T> {
         return new ResponseModel<>(statusCode, "Success", message, response);
     }
 
-    public static <T> ResponseModel<T> error(int statusCode, String message) {
-        return new ResponseModel<>(statusCode, "Error", message, null);
+    public static <T> ResponseModel<T> error(int statusCode, String message, T response) {
+        return new ResponseModel<>(statusCode, "Error", message, response);
     }
+    
 }
