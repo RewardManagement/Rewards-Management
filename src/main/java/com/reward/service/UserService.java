@@ -1,14 +1,18 @@
 package com.reward.service;
 
+import com.reward.dto.PointsDTO;
 import com.reward.dto.UserDTO;
 import com.reward.entity.User;
+import com.reward.entity.Points;
 import com.reward.entity.Role;
 import com.reward.exception.ResourceNotFoundException;
 import com.reward.exception.UnauthorizedException;
 import com.reward.exception.AlreadyExistsException;
-import com.reward.exception.BadRequestException; 
+import com.reward.exception.BadRequestException;
+import com.reward.mapper.PointsMapper;
 import com.reward.mapper.UserMapper;
 import com.reward.repository.UserRepository;
+import com.reward.repository.PointsRepository;
 import com.reward.repository.RoleRepository;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.security.JwtUtil;
@@ -22,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,6 +37,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PointsRepository pointsRepository;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtutil;
@@ -77,40 +83,54 @@ public class UserService {
 
         if ("STUDENT".equalsIgnoreCase(roleName)) {
             if (userDTO.getTeacherId() == null) {
-                throw new BadRequestException("Teacher ID is required for students"); // ✅ Throw BadRequestException
+                throw new BadRequestException("Teacher ID is required for students");
             }
             if (userDTO.getYear() == null) {
-                throw new BadRequestException("Year is required for students"); // ✅ Throw BadRequestException
+                throw new BadRequestException("Year is required for students");
             }
 
             teacher = userRepository.findByIdAndIsDeletedFalse(userDTO.getTeacherId())
                     .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
         } else {
             if (userDTO.getTeacherId() != null) {
-                throw new BadRequestException("Teacher ID should not be provided for non-students"); // ✅ Validation
+                throw new BadRequestException("Teacher ID should not be provided for non-students"); 
             }
             if (userDTO.getYear() != null) {
-                throw new BadRequestException("Year should not be provided for non-students"); // ✅ Validation
+                throw new BadRequestException("Year should not be provided for non-students"); 
             }
         }
 
         if (userId == null) {
             boolean userExists = userRepository.existsByEmailAndIsDeletedFalse(userDTO.getEmail());
             if (userExists) {
-                throw new AlreadyExistsException("A user with this email already exists"); // 🔹 Throw UserAlreadyExistsException
+                throw new AlreadyExistsException("A user with this email already exists"); 
             }
             if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
-                throw new BadRequestException("Password is required"); // ✅ Changed to throw BadRequestException
+                throw new BadRequestException("Password is required");
             }
             User newUser = userMapper.toEntity(userDTO);
             newUser.setRole(role);
             newUser.setTeacher(teacher);
 
             if (image != null && !image.isEmpty()) {
-                newUser.setProfilePicture(image.getBytes()); // ✅ Set the image only if valid
+                newUser.setProfilePicture(image.getBytes()); 
             }            
 
             userRepository.save(newUser);
+            if ("STUDENT".equalsIgnoreCase(roleName)) {
+                PointsDTO pointsDTO = PointsDTO.builder()
+                        .studentId(newUser.getId())
+                        .pointBalance(0)
+                        .totalPoints(0)
+                        .totalSpent(0)
+                        .build();
+
+                Points studentPoints = PointsMapper.toEntity(pointsDTO);
+                studentPoints.setStudent(newUser);
+                studentPoints.setUpdatedAt(LocalDateTime.now());
+
+                pointsRepository.save(studentPoints);
+            }
             return ResponseModel.success(201, "User created successfully", null);
         } else {
             User existingUser = userRepository.findByIdAndIsDeletedFalse(userId)
@@ -146,7 +166,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new UnauthorizedException("Incorrect old password"); // ✅ Throw UnauthorizedException
+            throw new UnauthorizedException("Incorrect old password"); 
         }
 
         if (!newPassword.matches("^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,}$")) {
@@ -165,7 +185,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (file == null || file.isEmpty()) {
-            throw new BadRequestException("Profile image file is required"); // ✅ Added validation
+            throw new BadRequestException("Profile image file is required"); 
         }
 
         user.setProfilePicture(file.getBytes());
@@ -186,10 +206,10 @@ public class UserService {
                 return ResponseModel.success(200, "Login successful", token);
             }
         } catch (Exception ex) {
-            throw new UnauthorizedException("Invalid email or password"); // ✅ Throwing UnauthorizedException
+            throw new UnauthorizedException("Invalid email or password"); 
         }
 
-        throw new UnauthorizedException("Invalid email or password"); // Fallback (should never reach)
+        throw new UnauthorizedException("Invalid email or password"); 
     }
 
 }
