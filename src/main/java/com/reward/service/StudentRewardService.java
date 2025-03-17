@@ -48,7 +48,7 @@ public class StudentRewardService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reward already redeemed by this student");
         }
     
-        Rewards reward = rewardsRepository.findById(rewardId)
+        Rewards reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reward not found"));
     
         User user = userRepository.findById(studentId)
