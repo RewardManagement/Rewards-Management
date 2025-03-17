@@ -19,7 +19,7 @@ public class RewardsController {
     @Autowired
     private RewardsService rewardsService;
 
-    // ✅ GET /rewards - Retrieve all rewards
+  
     @GetMapping
     public ResponseEntity<List<RewardsDTO>> getAllRewards() {
         List<RewardsDTO> rewards = rewardsService.getAllRewards();
@@ -27,51 +27,31 @@ public class RewardsController {
     }
 
 
-    // ✅ GET /rewards/{rewardId} - Retrieve a specific reward by ID
+   
     @GetMapping("/{rewardId}")
     public ResponseEntity<ResponseModel<RewardsDTO>> getRewardById(@PathVariable UUID rewardId) {
         ResponseModel<RewardsDTO> response = rewardsService.getRewardById(rewardId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    // ✅ POST /rewards - Create a new reward
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<ResponseModel<RewardsDTO>> createReward(
-            @RequestParam String name,  // Change from rewardName to name
-            @RequestParam String description,  // Change from rewardDescription to description
-            @RequestParam int points,  // Change from rewardPoints to points
-            @RequestParam("image") MultipartFile image) {
-    
-        RewardsDTO rewardsDTO = new RewardsDTO();
-        rewardsDTO.setName(name);
-        rewardsDTO.setDescription(description);
-        rewardsDTO.setPoints(points);
-    
-        ResponseModel<RewardsDTO> response = rewardsService.createReward(rewardsDTO, image);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-    
-
-    // ✅ PUT /rewards/{rewardId} - Update an existing reward
-    @PutMapping(value = "/{rewardId}", consumes = "multipart/form-data")
-    public ResponseEntity<ResponseModel<RewardsDTO>> updateReward(
-            @PathVariable UUID rewardId,
+    public ResponseEntity<ResponseModel<RewardsDTO>> saveOrUpdateReward(
+            @RequestParam(required = false) UUID rewardId,  
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam int points,
-            @RequestParam(value = "image", required = false) MultipartFile image) {  // Image is optional
+            @RequestParam(value = "image", required = false) MultipartFile image) {
     
         RewardsDTO rewardsDTO = new RewardsDTO();
         rewardsDTO.setName(name);
         rewardsDTO.setDescription(description);
         rewardsDTO.setPoints(points);
     
-        ResponseModel<RewardsDTO> response = rewardsService.updateReward(rewardId, rewardsDTO, image);
+        ResponseModel<RewardsDTO> response = rewardsService.saveOrUpdateReward(rewardId, rewardsDTO, image);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-    
 
-    // ✅ DELETE /rewards/{rewardId} - Soft delete a reward
+   
     @DeleteMapping("/{rewardId}")
     public ResponseEntity<ResponseModel<String>> softDeleteReward(@PathVariable UUID rewardId) {
         ResponseModel<String> response = rewardsService.softDeleteReward(rewardId);

@@ -42,57 +42,49 @@ public class RewardsService {
 
     }
 
-    public ResponseModel<RewardsDTO> createReward(RewardsDTO rewardsDTO, MultipartFile image) {
+    @Transactional
+    public ResponseModel<RewardsDTO> saveOrUpdateReward(UUID rewardId, RewardsDTO rewardsDTO, MultipartFile image) {
         try {
-            if (rewardsRepository.existsByNameAndIsDeletedFalse(rewardsDTO.getName())) {
-                return new ResponseModel<>(HttpStatus.CONFLICT.value(), "ERROR", "Reward with this name already exists", null);
+            Rewards reward;
+    
+            if (rewardId == null) {
+                // ✅ Create new reward
+                if (rewardsRepository.existsByNameAndIsDeletedFalse(rewardsDTO.getName())) {
+                    return new ResponseModel<>(HttpStatus.CONFLICT.value(), "ERROR", "Reward with this name already exists", null);
+                }
+                reward = RewardsMapper.toEntity(rewardsDTO);
+                reward.setIsDeleted(false); // Ensure it's not soft deleted
+            } else {
+                // ✅ Update existing reward
+                reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reward not found or deleted"));
+                
+                // Update fields
+                reward.setName(rewardsDTO.getName());
+                reward.setDescription(rewardsDTO.getDescription());
+                reward.setPoints(rewardsDTO.getPoints());
             }
     
-            Rewards reward = RewardsMapper.toEntity(rewardsDTO);
-            reward.setIsDeleted(false);
-    
-            // Convert MultipartFile to byte array and set it to entity
+            // ✅ Handle image (if provided)
             if (image != null && !image.isEmpty()) {
                 reward.setImage(image.getBytes());
             }
     
+            // ✅ Save the reward
             Rewards savedReward = rewardsRepository.save(reward);
     
-            return new ResponseModel<>(HttpStatus.CREATED.value(), "SUCCESS", "Reward created successfully", RewardsMapper.toDTO(savedReward));
+            // ✅ Convert to DTO and return success response
+            return new ResponseModel<>(rewardId == null ? HttpStatus.CREATED.value() : HttpStatus.OK.value(),
+                    "SUCCESS",
+                    rewardId == null ? "Reward created successfully" : "Reward updated successfully",
+                    RewardsMapper.toDTO(savedReward));
+        } catch (IOException e) {
+            return new ResponseModel<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ERROR", "Failed to process image", null);
         } catch (Exception e) {
-            return new ResponseModel<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ERROR", "Failed to create reward: " + e.getMessage(), null);
+            return new ResponseModel<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ERROR", "Failed to save or update reward: " + e.getMessage(), null);
         }
     }
     
-    
-
-@Transactional
-    public ResponseModel<RewardsDTO> updateReward(UUID rewardId, RewardsDTO rewardsDTO, MultipartFile image) {
-        Rewards reward = rewardsRepository.findById(rewardId)
-                .orElseThrow(() -> new RuntimeException("Reward not found with ID: " + rewardId));
-
-        // Update fields
-        reward.setName(rewardsDTO.getName());
-        reward.setDescription(rewardsDTO.getDescription());
-        reward.setPoints(rewardsDTO.getPoints());
-
-        // If a new image is provided, update it
-        if (image != null && !image.isEmpty()) {
-            try {
-                reward.setImage(image.getBytes()); // Convert MultipartFile to byte[]
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to process image", e);
-            }
-        }
-
-        // Save updated reward
-        Rewards updatedReward = rewardsRepository.save(reward);
-
-        // Convert to DTO and return ResponseModel
-        RewardsDTO updatedRewardDTO = RewardsMapper.toDTO(updatedReward);
-
-        return new ResponseModel<>( 200, "SUCCESS", "Reward updated successfully",updatedRewardDTO);
-    }
     
 
     @Transactional

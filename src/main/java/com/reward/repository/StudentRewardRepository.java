@@ -13,7 +13,7 @@ import java.util.UUID;
 @Repository
 public interface StudentRewardRepository extends JpaRepository<StudentReward, StudentRewardId> {
 
-    // ✅ Find all rewards redeemed by a student
+    
     @Query("SELECT new com.reward.dto.StudentRewardDTO(sr.id.studentId, sr.id.rewardId) FROM StudentReward sr WHERE sr.id.studentId = :studentId")
     List<StudentRewardDTO> findStudentRewardsByStudentId(UUID studentId);
 

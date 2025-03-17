@@ -20,7 +20,7 @@ public class StudentRewardController {
         this.studentRewardService = studentRewardService;
     }
 
-    // ✅ GET: Fetch all rewards redeemed by a student
+    
    @GetMapping("/{studentId}/rewards")
     public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
         ResponseModel<List<StudentRewardDTO>> response = studentRewardService.getStudentRewards(studentId);

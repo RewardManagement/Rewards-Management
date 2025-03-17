@@ -19,14 +19,14 @@ public interface RewardsRepository extends JpaRepository<Rewards, UUID> {
     void softDeleteById(@Param("id") UUID id);
 
 
-    // ✅ Find all rewards that are NOT deleted
+    
     List<Rewards> findByIsDeletedFalse();
 
-    // ✅ Find a reward by ID if it is NOT deleted
+    
     Optional<Rewards> findByIdAndIsDeletedFalse(UUID id);
 
 
-    // ✅ Check if a reward with the same name exists and is NOT deleted
+    
     boolean existsByNameAndIsDeletedFalse(String name);
 }
 
