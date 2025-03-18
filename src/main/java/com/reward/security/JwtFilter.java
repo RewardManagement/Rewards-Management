@@ -44,7 +44,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 token = authHeader.substring(7).trim();
+    
                 if (!token.isBlank()) {
+                    if (jwtService.isTokenInvalidated(token)) {  // ✅ Check if token is blacklisted
+                        throw new UnauthorizedException("Token is invalid or expired");
+                    }
                     email = jwtService.extractUserName(token);
                 }
             }

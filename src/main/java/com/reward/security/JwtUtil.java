@@ -17,8 +17,10 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.io.Decoders;
 
+import java.util.Set;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashMap;
 import java.util.function.Function;
 
@@ -31,6 +33,8 @@ public class JwtUtil {
     private long expirationMs;
 
     private SecretKey secretKey;
+
+    private final Set<String> invalidatedTokens = ConcurrentHashMap.newKeySet(); 
 
     public String generateToken(String email){
 
@@ -85,11 +89,23 @@ public class JwtUtil {
     
 
     public boolean validateToken(String token, UserDetails userDetails) {
+        if (isTokenInvalidated(token)) {
+            throw new UnauthorizedException("Token is invalid or expired");
+        }
+
         final String userName = extractUserName(token);
         if (!userName.equals(userDetails.getUsername()) || isTokenExpired(token)) {
             throw new UnauthorizedException("Invalid or expired token");
         }
         return true;
+    }
+
+    public void invalidateToken(String token) {
+        invalidatedTokens.add(token);  // ✅ Add token to blacklist
+    }
+
+    public boolean isTokenInvalidated(String token) {
+        return invalidatedTokens.contains(token);  // ✅ Check if token is blacklisted
     }
 
     private boolean isTokenExpired(String token) {
