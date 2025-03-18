@@ -3,8 +3,8 @@ package com.reward.controller;
 import com.reward.dto.StudentRewardDTO;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.StudentRewardService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,19 +20,19 @@ public class StudentRewardController {
         this.studentRewardService = studentRewardService;
     }
 
-    
-   @GetMapping("/{studentId}/rewards")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @GetMapping("/{studentId}/rewards")
     public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
-        ResponseModel<List<StudentRewardDTO>> response = studentRewardService.getStudentRewards(studentId);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+        return ResponseEntity.ok(studentRewardService.getStudentRewards(studentId));
+    }    
 
+    @PreAuthorize("hasAnyRole('STUDENT')")
     @PostMapping("/{studentId}/rewards/{rewardId}/redeem")
     public ResponseEntity<ResponseModel<String>> redeemReward(
-            @PathVariable("studentId") UUID studentId,
-            @PathVariable("rewardId") UUID rewardId) {
+            @PathVariable UUID studentId,
+            @PathVariable UUID rewardId) {
         
-        ResponseModel<String> response = studentRewardService.redeemReward(studentId, rewardId);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(studentRewardService.redeemReward(studentId, rewardId));
     }
+    
 }
