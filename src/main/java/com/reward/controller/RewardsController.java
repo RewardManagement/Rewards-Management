@@ -1,12 +1,15 @@
 package com.reward.controller;
 
+
 import com.reward.dto.RewardsDTO;
+
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.RewardsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,15 +36,14 @@ public class RewardsController {
         return ResponseEntity.ok(rewardsService.getRewardById(rewardId));
     }    
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<ResponseModel<RewardsDTO>> saveOrUpdateReward(
             @RequestParam(required = false) UUID rewardId,
-            @RequestPart("rewardsDTO") RewardsDTO rewardsDTO,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-    
-        return ResponseEntity.ok(rewardsService.saveOrUpdateReward(rewardId, rewardsDTO, image));
-    }    
+            @Valid @ModelAttribute("rewardsDTO") RewardsDTO rewardsDTO,  // Accept JSON as a string
+            @RequestPart(value = "logo", required = false) MultipartFile logo) {
+
+        return ResponseEntity.ok(rewardsService.saveOrUpdateReward(rewardId, rewardsDTO, logo));
+    }
    
     @PreAuthorize("hasAnyRole('ADMIN')")    
     @DeleteMapping("/{rewardId}")

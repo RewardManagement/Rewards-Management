@@ -87,9 +87,9 @@ public class RewardsService {
         }
     
         
-        Rewards savedReward = rewardsRepository.save(reward);
+        rewardsRepository.save(reward);
     
-        return new ResponseModel<>(200, "SUCCESS", rewardId == null ? "Reward created successfully" : "Reward updated successfully",RewardsMapper.toDTO(savedReward));
+        return new ResponseModel<>(200, "SUCCESS", rewardId == null ? "Reward created successfully" : "Reward updated successfully",null);
     
     }    
     
