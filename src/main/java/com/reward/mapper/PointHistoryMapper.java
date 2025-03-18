@@ -4,13 +4,12 @@ import com.reward.dto.PointHistoryDTO;
 import com.reward.entity.PointHistory;
 import com.reward.entity.Event;
 import com.reward.entity.User;
+import org.springframework.stereotype.Component;
 
-import lombok.Builder;
-
-@Builder
+@Component
 public class PointHistoryMapper {
 
-    public static PointHistoryDTO toDTO(PointHistory pointHistory) {
+    public PointHistoryDTO toDTO(PointHistory pointHistory) {
         return PointHistoryDTO.builder()
                 .id(pointHistory.getId())
                 .studentId(pointHistory.getStudent().getId())
@@ -19,7 +18,7 @@ public class PointHistoryMapper {
                 .build();
     }
 
-    public static PointHistory toEntity(PointHistoryDTO dto, User student, Event event) {
+    public PointHistory toEntity(PointHistoryDTO dto, User student, Event event) {
         return PointHistory.builder()
                 .student(student)
                 .event(event)
