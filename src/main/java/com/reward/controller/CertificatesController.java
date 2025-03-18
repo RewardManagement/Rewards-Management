@@ -24,9 +24,8 @@ public class CertificatesController {
     
     @GetMapping
     public ResponseEntity<ResponseModel<List<CertificatesDTO>>> getAllCertificates(
-            @RequestParam(required = false) UUID userId,
-            @RequestParam(required = false) String status) {  // Added second parameter
-        return ResponseEntity.ok(certificatesService.getAllCertificates(userId, status));
+            @RequestParam(required = false) UUID userId) {  // Added second parameter
+        return ResponseEntity.ok(certificatesService.getAllCertificates(userId));
     }
     
     @GetMapping("/{certificateId}")
@@ -34,18 +33,32 @@ public class CertificatesController {
         return ResponseEntity.ok(certificatesService.getCertificateById(certificateId));
     }
 
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseModel<String>> createCertificate(
             @RequestParam("studentId") UUID studentId,
+            @RequestParam("category") String category,
+            @RequestParam("status") String status,
+            @RequestParam("points") int points,
             @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
 
-        return ResponseEntity.ok(certificatesService.createCertificate(studentId, file));
+        return ResponseEntity.ok(certificatesService.createCertificate(studentId, category, status, points, file));
     }
 
     @DeleteMapping("/{certificateId}")
     public ResponseEntity<ResponseModel<String>> deleteCertificate(@PathVariable UUID certificateId) {
         return ResponseEntity.ok(certificatesService.deleteCertificate(certificateId));
     }
+    
+    @PutMapping("/{certificateId}/review")
+public ResponseEntity<ResponseModel<String>> reviewCertificate(
+        @PathVariable UUID certificateId,
+        @RequestParam("reviewerId") UUID reviewerId,  // Changed from teacherId to reviewerId
+        @RequestParam("points") int points,
+        @RequestParam("status") String status) {
+
+    return ResponseEntity.ok(certificatesService.reviewCertificate(certificateId, reviewerId, points, status));
+}
+
 
     @PutMapping("/{certificateId}")
 public ResponseEntity<ResponseModel<String>> updateCertificate(
@@ -58,6 +71,4 @@ public ResponseEntity<ResponseModel<String>> updateCertificate(
     return ResponseEntity.ok(certificatesService.updateCertificate(certificateId, category, status, points, file));
 }
 
-
-    
 }

@@ -21,9 +21,6 @@ public interface CertificateRepository extends JpaRepository<Certificates, UUID>
     @Query("SELECT c FROM Certificates c WHERE c.student.id = :studentId AND c.isDeleted = false")
     List<Certificates> findByStudentId(@Param("studentId") UUID studentId);
 
-    @Query("SELECT c FROM Certificates c WHERE c.category = :category AND c.isDeleted = false")
-    List<Certificates> findByCategory(@Param("category") String category);
-
     @Modifying
     @Query("UPDATE Certificates c SET c.isDeleted = true WHERE c.id = :certificateId")
     void softDeleteCertificate(@Param("certificateId") UUID certificateId);
@@ -31,4 +28,7 @@ public interface CertificateRepository extends JpaRepository<Certificates, UUID>
     @Query("SELECT c.fileData FROM Certificates c WHERE c.id = :certificateId AND c.isDeleted = false")
     Optional<byte[]> findFileDataById(@Param("certificateId") UUID certificateId);
     
+    @Query("SELECT c FROM Certificates c WHERE c.isDeleted = false")
+    List<Certificates> findAllCertificates();
+
 }
