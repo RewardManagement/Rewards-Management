@@ -3,10 +3,16 @@ package com.reward.security;
 import org.springframework.security.core.userdetails.UserDetails;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
+
+import com.reward.exception.UnauthorizedException;
+
 import org.springframework.beans.factory.annotation.Value;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.io.Decoders;
@@ -57,16 +63,33 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new UnauthorizedException("Token has expired");
+        } catch (MalformedJwtException e) {
+            throw new UnauthorizedException("Invalid token format");
+        } catch (UnsupportedJwtException e) {
+            throw new UnauthorizedException("Token type not supported");
+        } catch (io.jsonwebtoken.security.SignatureException e) {  
+            throw new UnauthorizedException("Token signature is invalid");
+        } catch (Exception e) {
+            throw new UnauthorizedException("Token validation failed");
+        }
     }
+    
+    
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if (!userName.equals(userDetails.getUsername()) || isTokenExpired(token)) {
+            throw new UnauthorizedException("Invalid or expired token");
+        }
+        return true;
     }
 
     private boolean isTokenExpired(String token) {

@@ -25,12 +25,18 @@ import com.reward.service.MyUserDetailsService;
 @EnableMethodSecurity 
 public class SecurityConfig { 
 
-    @Autowired
-    private JwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
+    private final MyUserDetailsService userDetailsService;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Autowired
-    private MyUserDetailsService userDetailsService;
-
+    public SecurityConfig(JwtFilter jwtFilter, MyUserDetailsService userDetailsService, CustomAccessDeniedHandler accessDeniedHandler, CustomAuthenticationEntryPoint authenticationEntryPoint) {
+        this.jwtFilter = jwtFilter;
+        this.userDetailsService = userDetailsService;
+        this.accessDeniedHandler = accessDeniedHandler; 
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception{
         http
@@ -42,7 +48,11 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(Customizer.withDefaults()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint) // ✅ Handles 401 Unauthorized (Missing/Invalid Token)
+                .accessDeniedHandler(accessDeniedHandler) // ✅ Handles 403 Forbidden (Valid Token, Wrong Role)
+            );
         
         
         return http.build();
