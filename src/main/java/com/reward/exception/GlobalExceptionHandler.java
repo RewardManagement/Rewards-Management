@@ -4,6 +4,7 @@ import com.reward.responsemodel.ResponseModel;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.security.access.AccessDeniedException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseModel<String>> handleMaxSizeException(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ResponseModel.error(413, "File size must not exceed 1MB",null));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseModel<String>> handleAccessDenied(AccessDeniedException ex) {
+        ResponseModel<String> response = ResponseModel.error(403, "Forbidden: You do not have permission to access this resource",null);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
