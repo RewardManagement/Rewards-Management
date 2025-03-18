@@ -28,4 +28,9 @@ public class StudentReward {
     @Column(name = "redeemed_at", nullable = false)
     private LocalDateTime redeemedAt;
 
+    @PrePersist
+    protected void onRedeem() {
+        this.redeemedAt = LocalDateTime.now();
+    }
+
 }
