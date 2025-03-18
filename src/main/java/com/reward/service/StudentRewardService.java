@@ -33,17 +33,25 @@ public class StudentRewardService {
     // ✅ Get all rewards redeemed by a student (Directly from Entity)
     @Transactional
     public ResponseModel<List<StudentRewardDTO>> getStudentRewards(UUID studentId) {
+        // ✅ Check if the student exists in the User table and is not deleted
+        boolean studentExists = userRepository.existsByIdAndIsDeletedFalse(studentId);
+        if (!studentExists) {
+            throw new ResourceNotFoundException("Student not found with ID: " + studentId);
+        }
+    
+        // ✅ Fetch the rewards from StudentRewardRepository
         List<StudentRewardDTO> rewardDTOs = studentRewardRepository.findStudentRewardsByStudentId(studentId);
-
+    
         if (rewardDTOs.isEmpty()) {
             throw new ResourceNotFoundException("No rewards found for student with ID: " + studentId);
         }
-
+    
         return new ResponseModel<>(200, "SUCCESS", "Rewards retrieved successfully", rewardDTOs);
-    }
-
+    }    
+    
 
     // ✅ Redeem a reward for a student (Using Entity)
+    @Transactional
     public ResponseModel<String> redeemReward(UUID studentId, UUID rewardId) {
         if (studentRewardRepository.existsById(new StudentRewardId(studentId, rewardId))) {
             throw new BadRequestException("Reward already redeemed by this student.");
