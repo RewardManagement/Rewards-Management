@@ -23,4 +23,5 @@ public class PointHistoryController {
     public ResponseEntity<ResponseModel<List<PointHistoryDTO>>> getPointHistoryByStudent(@PathVariable UUID studentId) {
         return ResponseEntity.ok(pointHistoryService.getPointHistoryByStudent(studentId));
     }
+    
 }
