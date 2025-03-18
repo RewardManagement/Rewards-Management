@@ -15,18 +15,17 @@ import java.util.UUID;
 @Repository
 public interface PointsRepository extends JpaRepository<Points, UUID> {
 
-    // ✅ Find points by student
+    
     Optional<Points> findByStudent(User student);
 
-    // ✅ Find points by student ID
+    
     List<Points> findByStudentId(UUID studentId);
 
-    // ✅ Get Points by Student ID as DTO
+   
     @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.id, p.pointBalance, p.totalPoints, p.totalSpent) " +
            "FROM Points p WHERE p.student.id = :studentId")
     Optional<PointsDTO> getPointsByStudentId(@Param("studentId") UUID studentId);
 
-    // ✅ Get Points for ALL students under a specific Teacher
     @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.id, p.pointBalance, p.totalPoints, p.totalSpent) " +
            "FROM Points p WHERE p.student.teacher.id = :teacherId")
     List<PointsDTO> getPointsByTeacherId(@Param("teacherId") UUID teacherId);

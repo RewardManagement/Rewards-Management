@@ -28,7 +28,7 @@ public class PointsService {
         this.userRepository = userRepository;
     }
 
-    // ✅ Get all students' points
+    
     @Transactional
     public ResponseModel<List<PointsDTO>> getAllStudentsPoints() {
         List<Points> pointsList = pointsRepository.findAll();
@@ -43,11 +43,11 @@ public class PointsService {
         return new ResponseModel<>(200, "SUCCESS", "Points data retrieved successfully.", pointsDTOList);
     }
 
-    // ✅ Get points for a specific student
+    
     @Transactional
     public ResponseModel<?> getPoints(UUID studentId, UUID teacherId) {
         if (studentId != null) {
-            // Fetch points for a specific student
+            
             Optional<PointsDTO> points = pointsRepository.getPointsByStudentId(studentId);
             if (points.isEmpty()) {
                 throw new ResourceNotFoundException("No points found for student ID: " + studentId);
@@ -66,9 +66,7 @@ public class PointsService {
             throw new BadRequestException("Either studentId or teacherId must be provided.");
         }
     }    
-    
 
-    // ✅ Update student points
     @Transactional
     public ResponseModel<PointsDTO> updateStudentPoints(UUID studentId, int pointsToAdd, int pointsToSpend) {
         User student = userRepository.findByIdAndIsDeletedFalse(studentId)
@@ -77,7 +75,8 @@ public class PointsService {
         Points points = pointsRepository.findByStudent(student)
                 .orElseThrow(() -> new ResourceNotFoundException("Points record not found for this student."));
 
-        // Update points
+        
+
         int newBalance = points.getPointBalance() + pointsToAdd - pointsToSpend;
         if (newBalance < 0) {
             throw new BadRequestException("Insufficient point balance.");
