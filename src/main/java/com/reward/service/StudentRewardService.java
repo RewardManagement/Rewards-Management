@@ -60,7 +60,7 @@ public class StudentRewardService {
         Rewards reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found with ID: " + rewardId));
     
-        User user = userRepository.findById(studentId)
+        User user = userRepository.findByIdAndIsDeletedFalse(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studentId));
     
         // Use the mapper instead of manually building the entity
