@@ -34,7 +34,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @PostMapping("/user")
     public ResponseEntity<ResponseModel<String>> createOrUpdateUser(
             @RequestParam(required = false) UUID userId,
