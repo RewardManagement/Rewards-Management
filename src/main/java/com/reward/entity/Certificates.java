@@ -1,11 +1,7 @@
 package com.reward.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,12 +18,12 @@ public class Certificates {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    // Foreign key reference to User table (Student)
     @ManyToOne
     @JoinColumn(name = "student_id", referencedColumnName = "id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_certificate_user"))
-    private User student; // Foreign key reference to User table (student)
+            foreignKey = @ForeignKey(name = "fk_certificate_student"))
+    private User student; 
 
-   
     @Lob
     @Column(name = "file_data", nullable = false) 
     private byte[] fileData; 
@@ -45,8 +41,15 @@ public class Certificates {
     @Column(name = "category")
     private String category; // "Technical", "Cultural", "Sports"
 
+    // New field to store which teacher reviewed the certificate
+    @ManyToOne
+    @JoinColumn(name = "reviewer_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_certificate_reviewer"))
+    private User reviewer; // NEW: Reviewer (Admin/Teacher)
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     @PrePersist
