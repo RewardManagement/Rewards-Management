@@ -17,5 +17,4 @@ public class RewardsDTO {
     private String image; 
     private Integer points;
     
-
 }
