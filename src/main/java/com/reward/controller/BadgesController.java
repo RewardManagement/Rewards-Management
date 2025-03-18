@@ -6,6 +6,7 @@ import com.reward.service.BadgesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,7 @@ public class BadgesController {
     private BadgesService badgesService;
 
     // ✅ Retrieve all badges
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @GetMapping
     public ResponseEntity<ResponseModel<List<BadgesDTO>>> getAllBadges() {
         ResponseModel<List<BadgesDTO>> response = badgesService.getAllBadges();
@@ -27,12 +29,14 @@ public class BadgesController {
     }
 
     // ✅ Retrieve badge by ID
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @GetMapping("/{id}")
     public ResponseEntity<ResponseModel<BadgesDTO>> getBadgeById(@PathVariable UUID id) {
         ResponseModel<BadgesDTO> response = badgesService.getBadgeById(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @PostMapping(consumes = "multipart/form-data")
 public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
         @RequestParam(required = false) UUID badgeId,  
@@ -52,6 +56,7 @@ public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
 
 
     // ✅ Soft delete a badge
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseModel<String>> deleteBadge(@PathVariable UUID id) {
         ResponseModel<String> response = badgesService.deleteBadge(id);
