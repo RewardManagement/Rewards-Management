@@ -30,7 +30,6 @@ public class StudentRewardService {
         this.userRepository = userRepository;
     }
 
-    // ✅ Get all rewards redeemed by a student (Directly from Entity)
     @Transactional
     public ResponseModel<List<StudentRewardDTO>> getStudentRewards(UUID studentId) {
         List<StudentRewardDTO> rewardDTO = studentRewardRepository.findStudentRewardsByStudentId(studentId);
@@ -42,7 +41,6 @@ public class StudentRewardService {
         return new ResponseModel<>(200, "SUCCESS", "Rewards retrieved successfully", rewardDTO);
     }
 
-    // ✅ Redeem a reward for a student (Using Entity)
     public ResponseModel<String> redeemReward(UUID studentId, UUID rewardId) {
         if (studentRewardRepository.existsById(new StudentRewardId(studentId, rewardId))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reward already redeemed by this student");
@@ -57,7 +55,7 @@ public class StudentRewardService {
         StudentReward studentReward = StudentReward.builder()
                 .id(new StudentRewardId(studentId, rewardId))
                 .user(user)
-                .reward(reward) // ✅ Use the retrieved reward
+                .reward(reward) 
                 .redeemedAt(LocalDateTime.now())
                 .build();
     
