@@ -33,40 +33,23 @@ public class BadgesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    // ✅ Create a new badge (Supports Multipart Data)
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<ResponseModel<BadgesDTO>> createBadge(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam int points,
-            @RequestParam("image") MultipartFile image) {
+public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
+        @RequestParam(required = false) UUID badgeId,  
+        @RequestParam String name,
+        @RequestParam String description,
+        @RequestParam int points,
+        @RequestParam(value = "image", required = false) MultipartFile image) {
 
-        BadgesDTO badgesDTO = new BadgesDTO();
-        badgesDTO.setName(name);
-        badgesDTO.setDescription(description);
-        badgesDTO.setPoints(points);
+    BadgesDTO badgesDTO = new BadgesDTO();
+    badgesDTO.setName(name);
+    badgesDTO.setDescription(description);
+    badgesDTO.setPoints(points);
 
-        ResponseModel<BadgesDTO> response = badgesService.createBadge(badgesDTO, image);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+    ResponseModel<BadgesDTO> response = badgesService.saveOrUpdateBadge(badgeId, badgesDTO, image);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+}
 
-    // ✅ Update an existing badge (Supports Multipart Data)
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<ResponseModel<BadgesDTO>> updateBadge(
-            @PathVariable UUID id,
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam int points,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
-
-        BadgesDTO badgesDTO = new BadgesDTO();
-        badgesDTO.setName(name);
-        badgesDTO.setDescription(description);
-        badgesDTO.setPoints(points);
-
-        ResponseModel<BadgesDTO> response = badgesService.updateBadge(id, badgesDTO, image);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
 
     // ✅ Soft delete a badge
     @DeleteMapping("/{id}")

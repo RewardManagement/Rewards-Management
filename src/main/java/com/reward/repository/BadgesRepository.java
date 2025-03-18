@@ -16,6 +16,9 @@ public interface BadgesRepository extends JpaRepository<Badges, UUID> {
     
     List<Badges> findByIsDeletedFalse(); // Fetch only active (not deleted) badges
 
+    // Fetch a badge by ID only if it's not deleted
+    List<Badges> findByIdAndIsDeletedFalse(UUID id);
+
     @Modifying
     @Transactional
     @Query("UPDATE Badges b SET b.isDeleted = true WHERE b.id = :id")

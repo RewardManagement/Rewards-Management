@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,54 +40,56 @@ public class BadgesService {
         }
     }
 
-    public ResponseModel<BadgesDTO> createBadge(BadgesDTO badgesDTO, MultipartFile image) {
+    public ResponseModel<BadgesDTO> saveOrUpdateBadge(UUID badgeId, BadgesDTO badgesDTO, MultipartFile image) {
         try {
-            // Check if ID is provided and already exists in the database
-            if (badgesDTO.getId() != null && badgesRepository.existsById(badgesDTO.getId())) {
-                return new ResponseModel<>(HttpStatus.CONFLICT.value(), "ERROR", "Badge already exists with ID: " + badgesDTO.getId(), null);
-            }
+            Badges badge;
             
-            // Convert DTO to entity and save
-            Badges badge = BadgesMapper.toEntity(badgesDTO);
-            badge.setId(null); // Ensure a new ID is generated
-            badge.setImage(image.getBytes());
-            Badges savedBadge = badgesRepository.save(badge);
-    
-            return new ResponseModel<>(HttpStatus.CREATED.value(), "SUCCESS", "Badge created successfully", BadgesMapper.toDTO(savedBadge));
-        } catch (Exception e) {
-            return new ResponseModel<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ERROR", "Failed to create badge: " + e.getMessage(), null);
-        }
-    }
-    
-    public ResponseModel<BadgesDTO> updateBadge(UUID id, BadgesDTO badgesDTO, MultipartFile image) {
-        Optional<Badges> optionalBadge = badgesRepository.findById(id);
-        if (optionalBadge.isPresent()) {
-            Badges badge = optionalBadge.get();
+            if (badgeId != null) {
+                // Updating existing badge
+                Optional<Badges> optionalBadge = badgesRepository.findById(badgeId);
+                if (optionalBadge.isPresent()) {
+                    badge = optionalBadge.get();
+                } else {
+                    return new ResponseModel<>(HttpStatus.NOT_FOUND.value(), "ERROR", "Badge not found", null);
+                }
+            } else {
+                // Creating new badge
+                badge = new Badges();
+                badge.setId(UUID.randomUUID());
+            }
+
+            // Set common fields
             badge.setName(badgesDTO.getName());
             badge.setDescription(badgesDTO.getDescription());
             badge.setPoints(badgesDTO.getPoints());
-            if (image != null && !image.isEmpty()) {
-                try {
-                    badge.setImage(image.getBytes());
-                } catch (IOException e) {
-                    return new ResponseModel<>(HttpStatus.BAD_REQUEST.value(), "ERROR", "Failed to process image", null);
-                }
-            }
-            
-            Badges updatedBadge = badgesRepository.save(badge);
 
-            return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", "Badge updated successfully", BadgesMapper.toDTO(updatedBadge));
-        } else {
-            return new ResponseModel<>(HttpStatus.NOT_FOUND.value(), "ERROR", "Badge not found", null);
+            // Update image only if provided
+            if (image != null && !image.isEmpty()) {
+                badge.setImage(image.getBytes());
+            }
+
+            // Save badge (either new or updated)
+            Badges savedBadge = badgesRepository.save(badge);
+
+            return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", 
+                    (badgeId == null ? "Badge created successfully" : "Badge updated successfully"), 
+                    BadgesMapper.toDTO(savedBadge));
+
+        } catch (IOException e) {
+            return new ResponseModel<>(HttpStatus.BAD_REQUEST.value(), "ERROR", "Failed to process image", null);
+        } catch (Exception e) {
+            return new ResponseModel<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ERROR", "Operation failed: " + e.getMessage(), null);
         }
     }
 
     public ResponseModel<String> deleteBadge(UUID id) {
-        if (badgesRepository.existsById(id)) {
+        Optional<Badges> badgeOptional = badgesRepository.findById(id);
+        if (badgeOptional.isPresent()) {
             badgesRepository.softDeleteBadge(id);
-        return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", "Badge soft deleted successfully", "Soft Deleted Badge ID: " + id);
-    } else {
-        return new ResponseModel<>(HttpStatus.NOT_FOUND.value(), "ERROR", "Badge not found", null);
+            return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", "Badge soft deleted successfully", "Soft Deleted Badge ID: " + id);
+        } else {
+            return new ResponseModel<>(HttpStatus.NOT_FOUND.value(), "ERROR", "Badge not found", null);
+        }
     }
-    }
+    
 }
