@@ -25,7 +25,7 @@ public class RewardsService {
 
     private final RewardsRepository rewardsRepository;
 
-    // ✅ Constructor-based dependency injection
+    
     public RewardsService(RewardsRepository rewardsRepository) {
         this.rewardsRepository = rewardsRepository;
     }
@@ -48,7 +48,7 @@ public class RewardsService {
 
     @Transactional
     public ResponseModel<RewardsDTO> getRewardById(UUID rewardId) {
-        Rewards reward = rewardsRepository.findById(rewardId)
+        Rewards reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found with ID: " + rewardId));
     
         RewardsDTO rewardDTO = RewardsMapper.toDTO(reward);
@@ -61,14 +61,14 @@ public class RewardsService {
         Rewards reward;
     
         if (rewardId == null) {
-            // ✅ Check if reward name already exists
+            
             if (rewardsRepository.existsByNameAndIsDeletedFalse(rewardsDTO.getName())) {
                 throw new AlreadyExistsException("Reward with this name already exists");
             }
             reward = RewardsMapper.toEntity(rewardsDTO);
             reward.setIsDeleted(false);
         } else {
-            // ✅ Find and update existing reward
+            
             reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
                     .orElseThrow(() -> new ResourceNotFoundException("Reward not found or deleted"));
     
@@ -77,7 +77,7 @@ public class RewardsService {
             reward.setPoints(rewardsDTO.getPoints());
         }
     
-        // ✅ Handle image (if provided)
+        
         if (image != null && !image.isEmpty()) {
             try {
                 reward.setImage(image.getBytes());
@@ -86,7 +86,7 @@ public class RewardsService {
             }
         }
     
-        // ✅ Save the reward
+        
         Rewards savedReward = rewardsRepository.save(reward);
     
         return new ResponseModel<>(200, "SUCCESS", rewardId == null ? "Reward created successfully" : "Reward updated successfully",RewardsMapper.toDTO(savedReward));
