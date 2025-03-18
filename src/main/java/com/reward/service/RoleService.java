@@ -35,21 +35,6 @@ public class RoleService {
     }
 
     @Transactional
-    public ResponseModel<Role> updateRole(UUID roleId, String newRoleName) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + roleId));
-
-        if (roleRepository.existsByRoleName(newRoleName)) {
-            return ResponseModel.error(400, "Role name already exists",null);
-        }
-
-        role.setRoleName(newRoleName);
-        Role updatedRole = roleRepository.save(role);
-
-        return ResponseModel.success(200, "Role updated successfully", updatedRole);
-    }
-
-    @Transactional
     public ResponseModel<String> deleteRole(UUID roleId) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + roleId));
