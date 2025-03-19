@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class PointHistoryService {
@@ -23,16 +22,13 @@ public class PointHistoryService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
-    private final PointHistoryMapper pointHistoryMapper;
 
     public PointHistoryService(PointHistoryRepository pointHistoryRepository, 
                                UserRepository userRepository, 
-                               EventRepository eventRepository, 
-                               PointHistoryMapper pointHistoryMapper) {
+                               EventRepository eventRepository) {
         this.pointHistoryRepository = pointHistoryRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
-        this.pointHistoryMapper = pointHistoryMapper;
     }
 
     @Transactional
@@ -52,15 +48,18 @@ public class PointHistoryService {
         pointHistoryRepository.save(pointHistory);
     }
 
-    public ResponseModel<List<PointHistoryDTO>> getPointHistoryByStudent(UUID studentId) {
-        List<PointHistoryDTO> historyList = pointHistoryRepository.findByStudentId(studentId)
-                .stream()
-                .map(pointHistoryMapper::toDTO)  
- 
-                .collect(Collectors.toList());
-    
-        return ResponseModel.success(200, "Point history retrieved successfully", historyList);
-    }
-    
-    
+    @Transactional
+        public ResponseModel<List<PointHistoryDTO>> getPointHistoryByStudent(UUID studentId) {
+        List<PointHistory> pointHistories = pointHistoryRepository.findByStudentId(studentId);
+
+        if (pointHistories.isEmpty()) {
+                throw new ResourceNotFoundException("No point history found for student ID: " + studentId);
+        }
+
+        List<PointHistoryDTO> pointHistoryDTOs = pointHistories.stream()
+                .map(PointHistoryMapper::toDTO)
+                .toList();
+
+        return ResponseModel.success(200, "Point history retrieved successfully", pointHistoryDTOs);
+        }
 }
