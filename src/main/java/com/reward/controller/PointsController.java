@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
  
 @RestController
-@RequestMapping("/points")
+@RequestMapping("/api/points")
 public class PointsController {
  
     private final PointsService pointsService;
@@ -35,7 +35,6 @@ public class PointsController {
             @RequestParam(required = false) UUID teacherId) {
         return ResponseEntity.ok(pointsService.getPoints(studentId, teacherId));
     }
-    
     
     
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")

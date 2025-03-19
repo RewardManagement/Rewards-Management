@@ -36,6 +36,7 @@ public class RewardsController {
         return ResponseEntity.ok(rewardsService.getRewardById(rewardId));
     }    
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<ResponseModel<RewardsDTO>> saveOrUpdateReward(
             @RequestParam(required = false) UUID rewardId,
