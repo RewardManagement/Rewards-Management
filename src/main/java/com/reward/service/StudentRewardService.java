@@ -23,14 +23,15 @@ public class StudentRewardService {
     private final UserRepository userRepository;
     private final StudentRewardRepository studentRewardRepository;
     private final RewardsRepository rewardsRepository;
+    private final EventService eventService;
 
-    public StudentRewardService(StudentRewardRepository studentRewardRepository, RewardsRepository rewardsRepository, UserRepository userRepository) {
+    public StudentRewardService(StudentRewardRepository studentRewardRepository, RewardsRepository rewardsRepository, UserRepository userRepository, EventService eventService) {
         this.studentRewardRepository = studentRewardRepository;
         this.rewardsRepository = rewardsRepository;
         this.userRepository = userRepository;
+        this.eventService = eventService;
     }
 
-    // ✅ Get all rewards redeemed by a student (Directly from Entity)
     @Transactional
     public ResponseModel<List<StudentRewardDTO>> getStudentRewards(UUID studentId) {
         // ✅ Check if the student exists in the User table and is not deleted
@@ -69,6 +70,8 @@ public class StudentRewardService {
         );
     
         studentRewardRepository.save(studentReward);
+
+        eventService.createEvent(studentId, null, null, rewardId, reward.getPoints());
     
         return new ResponseModel<>(200, "SUCCESS", "Reward redeemed successfully", null);
     }

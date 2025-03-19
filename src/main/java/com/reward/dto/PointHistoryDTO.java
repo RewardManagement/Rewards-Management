@@ -9,8 +9,6 @@ import java.util.UUID;
 @Builder
 public class PointHistoryDTO {
     private UUID id;
-    private UUID studentId;
-    private UUID eventId;
-    private int pointsChanged;
-    
+    private String fileName;
+    private Integer pointsChanged;  
 }
