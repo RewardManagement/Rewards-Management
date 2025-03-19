@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
-
+import java.util.stream.Collectors;
 
 @Service
 public class PointsService {
@@ -31,23 +31,22 @@ public class PointsService {
     
     @Transactional
     public ResponseModel<List<PointsDTO>> getAllStudentsPoints() {
-        List<Points> pointsList = pointsRepository.findAll();
+        List<Points> pointsList = pointsRepository.findAllValidPoints(); // Use the modified query
         if (pointsList.isEmpty()) {
             throw new ResourceNotFoundException("No points records found.");
         }
-
-        return new ResponseModel<>(200, "SUCCESS", "Points data retrieved successfully.", null);
-    }
+    
+        List<PointsDTO> pointsDTOList = pointsList.stream()
+                .map(PointsMapper::toDTO)
+                .collect(Collectors.toList());
+    
+        return new ResponseModel<>(200, "SUCCESS", "Points data retrieved successfully.", pointsDTOList);
+    }    
 
     
     @Transactional
     public ResponseModel<?> getPoints(UUID studentId, UUID teacherId) {
         if (studentId != null) {
-            
-            if (!userRepository.existsByIdAndIsDeletedFalse(studentId)) {
-                throw new ResourceNotFoundException("Student with ID " + studentId + " does not exist.");
-            }
-    
             
             Optional<PointsDTO> points = pointsRepository.getPointsByStudentId(studentId);
             if (points.isEmpty()) {
@@ -56,12 +55,7 @@ public class PointsService {
             return new ResponseModel<>(200, "SUCCESS", "Student points retrieved successfully.", points.get());
         } 
         else if (teacherId != null) {
-            
-            if (!userRepository.existsByIdAndIsDeletedFalse(teacherId)) {
-                throw new ResourceNotFoundException("Teacher with ID " + teacherId + " does not exist.");
-            }
-    
-           
+            // Fetch points for all students under a specific teacher
             List<PointsDTO> pointsList = pointsRepository.getPointsByTeacherId(teacherId);
             if (pointsList.isEmpty()) {
                 throw new ResourceNotFoundException("No students found under teacher ID: " + teacherId);
@@ -71,8 +65,7 @@ public class PointsService {
         else {
             throw new BadRequestException("Either studentId or teacherId must be provided.");
         }
-    }
-    
+    }    
 
     @Transactional
     public ResponseModel<PointsDTO> updateStudentPoints(UUID studentId, int pointsToAdd, int pointsToSpend) {
