@@ -3,6 +3,9 @@ package com.reward.controller;
 import com.reward.dto.BadgesDTO;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.BadgesService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,16 +43,13 @@ public class BadgesController {
     @PostMapping(consumes = "multipart/form-data")
 public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
         @RequestParam(required = false) UUID badgeId,  
+        @Valid @ModelAttribute BadgesDTO badgesDTO,
         @RequestParam String name,
         @RequestParam String description,
         @RequestParam int points,
         @RequestParam(value = "image", required = false) MultipartFile image) {
 
-    BadgesDTO badgesDTO = new BadgesDTO();
-    badgesDTO.setName(name);
-    badgesDTO.setDescription(description);
-    badgesDTO.setPoints(points);
-
+   
     ResponseModel<BadgesDTO> response = badgesService.saveOrUpdateBadge(badgeId, badgesDTO, image);
     return ResponseEntity.status(HttpStatus.OK).body(response);
 }
