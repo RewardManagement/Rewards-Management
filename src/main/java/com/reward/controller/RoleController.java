@@ -31,12 +31,6 @@ public class RoleController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @PutMapping("/{roleId}")
-    public ResponseEntity<ResponseModel<Role>> updateRole(@PathVariable UUID roleId, @RequestParam String newRoleName) {
-        return ResponseEntity.ok(roleService.updateRole(roleId, newRoleName));
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{roleId}")
     public ResponseEntity<ResponseModel<String>> deleteRole(@PathVariable UUID roleId) {
         return ResponseEntity.ok(roleService.deleteRole(roleId));
