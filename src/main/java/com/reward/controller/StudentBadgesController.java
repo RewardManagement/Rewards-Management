@@ -4,15 +4,18 @@ import com.reward.entity.StudentBadges;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.StudentBadgesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/student-badges")
+@Validated
 public class StudentBadgesController {
 
     @Autowired
@@ -22,13 +25,15 @@ public class StudentBadgesController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @PostMapping("/assign")
     public ResponseEntity<ResponseModel<String>> assignBadgeToStudent(
-            @RequestParam UUID studentId,
-            @RequestParam UUID badgeId,
-            @RequestParam UUID teacherId) {
+        @RequestParam @NotNull(message = "Student ID cannot be null") UUID studentId,
+        @RequestParam @NotNull(message = "Badge ID cannot be null") UUID badgeId,
+        @RequestParam @NotNull(message = "Teacher ID cannot be null") UUID teacherId) {
 
-        String response = studentBadgesService.assignBadgeToStudent(studentId, badgeId, teacherId);
-        return ResponseEntity.ok(ResponseModel.success(200, "Badge assigned successfully!", response));
-    }
+            ResponseModel<String> response = studentBadgesService.assignBadgeToStudent(studentId, badgeId, teacherId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+}
+    
 
     // Get all badges assigned to a student
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
@@ -65,7 +70,8 @@ public class StudentBadgesController {
             @RequestParam UUID studentId,
             @RequestParam UUID badgeId) {
 
-        String response = studentBadgesService.removeBadgeFromStudent(studentId, badgeId);
-        return ResponseEntity.ok(ResponseModel.success(200, "Badge unassigned successfully!", response));
+        ResponseModel<String> response = studentBadgesService.removeBadgeFromStudent(studentId, badgeId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
 }

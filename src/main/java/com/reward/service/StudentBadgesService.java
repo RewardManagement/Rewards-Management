@@ -10,6 +10,7 @@ import com.reward.repository.UserRepository;
 import com.reward.responsemodel.ResponseModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class StudentBadgesService {
     private BadgesRepository badgesRepository;
 
     // Assign a badge to a student by a teacher
-    public String assignBadgeToStudent(UUID studentId, UUID badgeId, UUID teacherId) {
+    public ResponseModel<String >assignBadgeToStudent(UUID studentId, UUID badgeId, UUID teacherId) {
         if (studentId == null || badgeId == null || teacherId == null) {
             throw new BadRequestException("Student ID, Badge ID, and Teacher ID cannot be null.");
         }
@@ -71,34 +72,38 @@ public class StudentBadgesService {
                 .build();
 
         studentBadgesRepository.save(studentBadge);
-        return "Badge assigned successfully!";
+        return ResponseModel.success(200, "Badge assigned successfully!", null);
     }
 
     // Get all badges assigned to a student
 public ResponseModel<List<StudentBadges>> getBadgesByStudentId(UUID studentId) {
-    if (!userRepository.existsById(studentId)) {
-        return ResponseModel.error(404, "Student not found with ID: " + studentId, null);
+        // Check if student exists
+        if (!userRepository.existsById(studentId)) {
+            throw new ResourceNotFoundException("Student not found with ID: " + studentId);
+        }
+
+        // Fetch assigned badges
+        List<StudentBadges> badges = studentBadgesRepository.findByStudentId(studentId);
+
+        // If no badges are found, return an error response
+        if (badges.isEmpty()) {
+            throw new ResourceNotFoundException("Badges not found with ID: " + studentId);
+        }
+
+        // Return success response with badge data
+        return ResponseModel.success(HttpStatus.OK.value(), "Badges retrieved successfully!", badges);
     }
-    
-    List<StudentBadges> badges = studentBadgesRepository.findByStudentId(studentId);
-    
-    if (badges.isEmpty()) {
-        return ResponseModel.error(404, "No badges found for student with ID: " + studentId, null);
-    }
-    
-    return ResponseModel.success(200, "Badges retrieved successfully!", badges);
-}
 
 // Get all badges assigned by a teacher
 public ResponseModel<List<StudentBadges>> getBadgesByTeacherId(UUID teacherId) {
     if (!userRepository.existsById(teacherId)) {
-        return ResponseModel.error(404, "Teacher not found with ID: " + teacherId, null);
+        throw new ResourceNotFoundException( "Teacher not found with ID: " + teacherId);
     }
     
     List<StudentBadges> badges = studentBadgesRepository.findByTeacherId(teacherId);
     
     if (badges.isEmpty()) {
-        return ResponseModel.error(404, "No badges found assigned by teacher with ID: " + teacherId, null);
+        throw new ResourceNotFoundException( "No badges found assigned by teacher with ID: ");
     }
     
     return ResponseModel.success(200, "Badges assigned by teacher retrieved successfully!", badges);
@@ -107,17 +112,17 @@ public ResponseModel<List<StudentBadges>> getBadgesByTeacherId(UUID teacherId) {
 // Get all badges assigned to a student by a specific teacher
 public ResponseModel<List<StudentBadges>> getBadgesByStudentAndTeacher(UUID studentId, UUID teacherId) {
     if (!userRepository.existsById(studentId)) {
-        return ResponseModel.error(404, "Student not found with ID: " + studentId, null);
+        throw new ResourceNotFoundException( "Student not found with ID: " + studentId);
     }
     
     if (!userRepository.existsById(teacherId)) {
-        return ResponseModel.error(404, "Teacher not found with ID: " + teacherId, null);
+        throw new ResourceNotFoundException( "Teacher not found with ID: " + teacherId);
     }
     
     List<StudentBadges> badges = studentBadgesRepository.findByStudentIdAndTeacherId(studentId, teacherId);
     
     if (badges.isEmpty()) {
-        return ResponseModel.error(404, "No badges found assigned to student with ID: " + studentId + " by teacher with ID: " + teacherId, null);
+        throw new ResourceNotFoundException( "No badges found assigned to student with ID: " + studentId + " by teacher with ID: " + teacherId);
     }
     
     return ResponseModel.success(200, "Badges assigned by teacher to student retrieved successfully!", badges);
@@ -125,7 +130,7 @@ public ResponseModel<List<StudentBadges>> getBadgesByStudentAndTeacher(UUID stud
 
 
     // Delete (unassign) a badge from a student
-    public String removeBadgeFromStudent(UUID studentId, UUID badgeId) {
+    public ResponseModel<String >removeBadgeFromStudent(UUID studentId, UUID badgeId) {
         if (studentId == null || badgeId == null) {
             throw new BadRequestException("Student ID and Badge ID cannot be null.");
         }
@@ -133,7 +138,7 @@ public ResponseModel<List<StudentBadges>> getBadgesByStudentAndTeacher(UUID stud
         StudentBadgesId id = new StudentBadgesId(studentId, badgeId);
         if (studentBadgesRepository.existsById(id)) {
             studentBadgesRepository.deleteById(id);
-            return "Badge unassigned successfully!";
+            return ResponseModel.success(200, "Badge removed successfully", null) ;
         } else {
             throw new ResourceNotFoundException("Badge assignment not found with Student ID: " + studentId + " and Badge ID: " + badgeId);
         }
