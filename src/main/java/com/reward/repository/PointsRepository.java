@@ -21,6 +21,8 @@ public interface PointsRepository extends JpaRepository<Points, UUID> {
     
     List<Points> findByStudentId(UUID studentId);
 
+    @Query("SELECT p FROM Points p WHERE p.student.isDeleted = false")
+    List<Points> findAllValidPoints();    
    
     @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.id, p.pointBalance, p.totalPoints, p.totalSpent) " +
            "FROM Points p WHERE p.student.id = :studentId")
