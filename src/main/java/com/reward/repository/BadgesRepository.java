@@ -9,12 +9,23 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface BadgesRepository extends JpaRepository<Badges, UUID> {
     
     List<Badges> findByIsDeletedFalse(); // Fetch only active (not deleted) badges
+
+    // Fetch all non-deleted badges
+    List<Badges> findAllByIsDeletedFalse();
+
+    // Fetch a badge by ID only if it's not deleted
+    Optional<Badges> findByIdAndIsDeletedFalse(UUID id);
+
+    boolean existsByNameAndIsDeletedFalse(String name);
+
+    
 
     @Modifying
     @Transactional
