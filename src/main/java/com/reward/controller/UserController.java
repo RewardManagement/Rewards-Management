@@ -1,6 +1,7 @@
 package com.reward.controller;
 
 import com.reward.dto.UserDTO;
+import com.reward.exception.UnauthorizedException;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.UserService;
 import jakarta.validation.Valid;
@@ -9,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.reward.security.JwtUtil;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -20,22 +21,19 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtService;
 
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @GetMapping
-    public ResponseEntity<ResponseModel<List<UserDTO>>> getAllUsers(@RequestParam(required = false) String role) {
-        return ResponseEntity.ok(userService.getAllUsers(role));
-    }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @GetMapping("/{userId}")
-    public ResponseEntity<ResponseModel<UserDTO>> getUserById(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.getUserById(userId));
+    @GetMapping
+    public ResponseEntity<ResponseModel<?>> getUsers(
+            @RequestParam(required = false) UUID userId, 
+            @RequestParam(required = false) String role) {
+        return ResponseEntity.ok(userService.getUsers(userId, role));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @PostMapping("/user")
+    @PostMapping
     public ResponseEntity<ResponseModel<String>> createOrUpdateUser(
             @RequestParam(required = false) UUID userId,
             @RequestParam(required = false) String roleName,
@@ -53,20 +51,32 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @PutMapping("/{userId}/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<ResponseModel<String>> changePassword(
-            @PathVariable UUID userId,
-            @RequestParam String oldPassword,
-            @RequestParam String newPassword) {
-        return ResponseEntity.ok(userService.changePassword(userId, oldPassword, newPassword));
+            @RequestHeader("Authorization") String token,
+            @RequestParam(required = false) String oldPassword,
+            @RequestParam(required = false) String newPassword) {
+                if (token == null || !token.startsWith("Bearer ")) {
+                    throw new UnauthorizedException("Invalid or missing token");
+                }
+                
+                String jwt = token.substring(7);
+                String userEmail = jwtService.extractUserName(jwt); 
+        return ResponseEntity.ok(userService.changePassword(userEmail, oldPassword, newPassword));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @PutMapping("/profile/image")
     public ResponseEntity<ResponseModel<String>> updateProfileImage(
-            @RequestParam UUID userId, 
+            @RequestHeader("Authorization") String token,
             @RequestParam(required = false) MultipartFile file) throws IOException {
-        return ResponseEntity.ok(userService.updateProfileImage(userId, file));
+                if (token == null || !token.startsWith("Bearer ")) {
+                    throw new UnauthorizedException("Invalid or missing token");
+                }
+                
+                String jwt = token.substring(7);
+                String userEmail = jwtService.extractUserName(jwt); 
+        return ResponseEntity.ok(userService.updateProfileImage(userEmail, file));
     }
     
 }

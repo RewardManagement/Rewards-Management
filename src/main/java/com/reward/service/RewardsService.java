@@ -49,7 +49,7 @@ public class RewardsService {
     @Transactional
     public ResponseModel<RewardsDTO> getRewardById(UUID rewardId) {
         Rewards reward = rewardsRepository.findByIdAndIsDeletedFalse(rewardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Reward not found with ID: " + rewardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Reward not found "));
     
         RewardsDTO rewardDTO = RewardsMapper.toDTO(reward);
         

@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -83,11 +82,11 @@ public class BadgesService {
     }
 
     public ResponseModel<String> deleteBadge(UUID id) {
-        Badges badge = badgesRepository.findByIdAndIsDeletedFalse(id)
+        badgesRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Badge not found"));
 
         badgesRepository.softDeleteBadge(id);
 
-        return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", "Badge soft deleted successfully", "Soft Deleted Badge ID: " + id);
+        return new ResponseModel<>(HttpStatus.OK.value(), "SUCCESS", "Badge soft deleted successfully", null);
     }
 }

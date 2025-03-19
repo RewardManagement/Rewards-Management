@@ -44,7 +44,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public ResponseModel<List<UserDTO>> getAllUsers(String roleName) {
+    public ResponseModel<?> getUsers(UUID userId, String roleName) {
+        if (userId != null) {
+            User user = userRepository.findByIdAndIsDeletedFalse(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            return ResponseModel.success(200, "User retrieved successfully", userMapper.toDTO(user));
+        }
+
         if (roleName != null && !roleRepository.existsByRoleName(roleName)) {
             throw new ResourceNotFoundException("Invalid role provided");
         }
@@ -64,14 +70,6 @@ public class UserService {
         return ResponseModel.success(200, "Users retrieved successfully", userDTOs);
     }
 
-
-    @Transactional
-    public ResponseModel<UserDTO> getUserById(UUID userId) {
-        User user = userRepository.findByIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        return ResponseModel.success(200, "User retrieved successfully", userMapper.toDTO(user));
-    }
 
     @Transactional
     public ResponseModel<String> createOrUpdateUser(UUID userId, String roleName, UserDTO userDTO, MultipartFile image) throws IOException {
@@ -161,16 +159,23 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseModel<String> changePassword(UUID userId, String oldPassword, String newPassword) {
-        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+    public ResponseModel<String> changePassword(String userEmail, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmailAndIsDeletedFalse(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+                if (oldPassword == null || oldPassword.trim().isEmpty()) {
+                    throw new BadRequestException("Old password is required");
+                }
+            
+                if (newPassword == null || newPassword.trim().isEmpty()) {
+                    throw new BadRequestException("New password is required");
+                }
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new UnauthorizedException("Incorrect old password"); 
         }
 
-        if (!newPassword.matches("^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,}$")) {
-            throw new BadRequestException("New password must be at least 6 characters long, contain 1 special character, and 1 number");
+        if (!newPassword.matches("^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{5,}$")) {
+            throw new BadRequestException("New password must be at least 5 characters long, contain 1 special character, and 1 number");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -180,8 +185,8 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseModel<String> updateProfileImage(UUID userId, MultipartFile file) throws IOException {
-        User user = userRepository.findById(userId)
+    public ResponseModel<String> updateProfileImage(String userEmail, MultipartFile file) throws IOException {
+        User user = userRepository.findByEmailAndIsDeletedFalse(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (file == null || file.isEmpty()) {

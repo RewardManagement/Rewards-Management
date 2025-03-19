@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/student-badges")
+@RequestMapping("/api/students")
 @Validated
 public class StudentBadgesController {
 
@@ -37,7 +37,7 @@ public class StudentBadgesController {
 
     // Get all badges assigned to a student
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/{studentId}/badges")
     
     public ResponseEntity<ResponseModel<List<StudentBadges>>> getBadgesByStudentId(@PathVariable UUID studentId) {
         ResponseModel<List<StudentBadges>> response = studentBadgesService.getBadgesByStudentId(studentId);

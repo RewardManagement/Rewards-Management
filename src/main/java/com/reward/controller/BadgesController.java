@@ -44,13 +44,10 @@ public class BadgesController {
 public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
         @RequestParam(required = false) UUID badgeId,  
         @Valid @ModelAttribute BadgesDTO badgesDTO,
-        @RequestParam String name,
-        @RequestParam String description,
-        @RequestParam int points,
-        @RequestParam(value = "image", required = false) MultipartFile image) {
+        @RequestPart(value = "logo", required = false) MultipartFile logo) {
 
    
-    ResponseModel<BadgesDTO> response = badgesService.saveOrUpdateBadge(badgeId, badgesDTO, image);
+    ResponseModel<BadgesDTO> response = badgesService.saveOrUpdateBadge(badgeId, badgesDTO, logo);
     return ResponseEntity.status(HttpStatus.OK).body(response);
 }
 

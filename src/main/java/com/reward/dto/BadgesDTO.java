@@ -19,7 +19,6 @@ public class BadgesDTO {
     @NotBlank(message = "Badge name cannot be blank")
     private String name;
 
-    @NotBlank(message = "Image URL cannot be blank")
     private String image;
 
     @NotBlank(message = "Description cannot be blank")
