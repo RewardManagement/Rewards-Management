@@ -9,7 +9,6 @@ import com.reward.repository.BadgesRepository;
 import com.reward.repository.UserRepository;
 import com.reward.responsemodel.ResponseModel;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +20,24 @@ import java.util.UUID;
 @Service
 public class StudentBadgesService {
 
-    @Autowired
-    private StudentBadgesRepository studentBadgesRepository;
+    private final StudentBadgesRepository studentBadgesRepository;
+    private final UserRepository userRepository;
+    private final BadgesRepository badgesRepository;
+    private final EventService eventService;
+    private final PointsService pointsService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BadgesRepository badgesRepository;
-
+    // ✅ Constructor Injection
+    public StudentBadgesService(
+            StudentBadgesRepository studentBadgesRepository,
+            UserRepository userRepository,
+            BadgesRepository badgesRepository,
+            EventService eventService, PointsService pointsService) {
+        this.pointsService = pointsService;
+        this.studentBadgesRepository = studentBadgesRepository;
+        this.userRepository = userRepository;
+        this.badgesRepository = badgesRepository;
+        this.eventService = eventService;
+    }
     // Assign a badge to a student by a teacher
     public ResponseModel<String >assignBadgeToStudent(UUID studentId, UUID badgeId, UUID teacherId) {
         if (studentId == null || badgeId == null || teacherId == null) {
@@ -72,6 +80,8 @@ public class StudentBadgesService {
                 .build();
 
         studentBadgesRepository.save(studentBadge);
+        pointsService.updateStudentPoints(studentId, badge.getPoints(), 0); 
+        eventService.createEvent(student.getId(), badge.getId(), null, null,badge.getPoints());
         return ResponseModel.success(200, "Badge assigned successfully!", null);
     }
 

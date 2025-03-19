@@ -28,6 +28,7 @@ public class CertificatesService {
     private final CertificatesMapper certificatesMapper;
     private final UserRepository userRepository;
     private final EventService eventService;
+    private final PointsService pointsService;  
  
     @Transactional
     public ResponseModel<List<CertificatesDTO>> getAllCertificates(UUID studentId) {
@@ -153,6 +154,7 @@ public class CertificatesService {
 
         if ("APPROVED".equalsIgnoreCase(status)) {
             eventService.createEvent(certificate.getStudent().getId(), null, certificate.getId(), null, points);
+            pointsService.updateStudentPoints(certificate.getStudent().getId(), certificate.getPoints(), 0); 
         }
  
         return ResponseModel.success(200, "Certificate reviewed successfully", null);

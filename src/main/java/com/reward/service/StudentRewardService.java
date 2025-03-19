@@ -24,12 +24,14 @@ public class StudentRewardService {
     private final StudentRewardRepository studentRewardRepository;
     private final RewardsRepository rewardsRepository;
     private final EventService eventService;
+    private final PointsService pointsService;
 
-    public StudentRewardService(StudentRewardRepository studentRewardRepository, RewardsRepository rewardsRepository, UserRepository userRepository, EventService eventService) {
+    public StudentRewardService(StudentRewardRepository studentRewardRepository, RewardsRepository rewardsRepository, UserRepository userRepository, EventService eventService, PointsService pointsService) {
         this.studentRewardRepository = studentRewardRepository;
         this.rewardsRepository = rewardsRepository;
         this.userRepository = userRepository;
         this.eventService = eventService;
+        this.pointsService = pointsService;
     }
 
     @Transactional
@@ -63,7 +65,8 @@ public class StudentRewardService {
     
         User user = userRepository.findByIdAndIsDeletedFalse(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studentId));
-    
+        
+        pointsService.updateStudentPoints(studentId, 0, reward.getPoints()); 
         // Use the mapper instead of manually building the entity
         StudentReward studentReward = StudentRewardMapper.toEntity(
                 new StudentRewardDTO(studentId, rewardId), user, reward
