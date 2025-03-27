@@ -15,6 +15,7 @@ import com.reward.security.JwtUtil;
 import java.io.IOException;
 import java.util.UUID;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
