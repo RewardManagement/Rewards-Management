@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.reward.service.UserService;
 
 import lombok.RequiredArgsConstructor;
-
+import java.util.Map;
 import com.reward.dto.AuthRequest;
 import com.reward.exception.UnauthorizedException;
 import com.reward.responsemodel.ResponseModel;
@@ -28,7 +28,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseModel<String>> login(@RequestBody AuthRequest loginRequest) {
+    public ResponseEntity<ResponseModel<Map<String, String>>>login(@RequestBody AuthRequest loginRequest) {
         return ResponseEntity.ok(userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword()));
     }
 

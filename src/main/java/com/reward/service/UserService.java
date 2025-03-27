@@ -27,8 +27,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -200,7 +202,7 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseModel<String> loginUser(String email, String password) {
+    public ResponseModel<Map<String, String>> loginUser(String email, String password) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
@@ -208,7 +210,21 @@ public class UserService {
 
             if (authentication.isAuthenticated()) {
                 String token = jwtutil.generateToken(email);
-                return ResponseModel.success(200, "Login successful", token);
+
+                // Fetch user details from database
+                User user = userRepository.findByEmailAndIsDeletedFalse(email)
+                        .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+                // Get role (assuming user has one role)
+                String role = user.getRole().getRoleName();
+
+                // Prepare response
+                Map<String, String> responseData = new HashMap<>();
+                responseData.put("token", token);
+                responseData.put("role", role);
+                responseData.put("userId", user.getId().toString()); // Include user ID
+
+                return ResponseModel.success(200, "Login successful", responseData);
             }
         } catch (Exception ex) {
             throw new UnauthorizedException("Invalid email or password"); 
@@ -216,5 +232,6 @@ public class UserService {
 
         throw new UnauthorizedException("Invalid email or password"); 
     }
+
 
 }
