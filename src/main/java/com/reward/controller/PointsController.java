@@ -9,7 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.web.bind.annotation.*;
  
-import java.util.List;
 import java.util.UUID;
  
 @CrossOrigin(origins = "http://localhost:5173")
@@ -24,14 +23,9 @@ public class PointsController {
     }
  
     
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping
-    public ResponseEntity<ResponseModel<List<PointsDTO>>> getAllStudentsPoints() {
-        return ResponseEntity.ok(pointsService.getAllStudentsPoints());
-    } 
-    
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @GetMapping("/students")
-    public ResponseEntity<ResponseModel<?>> getStudentPoints(
+    public ResponseEntity<ResponseModel<?>> getPoints(
             @RequestParam(required = false) UUID studentId,
             @RequestParam(required = false) UUID teacherId) {
         return ResponseEntity.ok(pointsService.getPoints(studentId, teacherId));

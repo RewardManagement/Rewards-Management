@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 public class PointsDTO {
     private UUID id;
-    private UUID studentId;
+    private String studentName;
     private int pointBalance;
     private int totalPoints;
     private int totalSpent;

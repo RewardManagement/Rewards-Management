@@ -9,7 +9,7 @@ public class PointsMapper {
     public static PointsDTO toDTO(Points points) {
         return PointsDTO.builder()
                 .id(points.getId())
-                .studentId(points.getStudent().getId())
+                .studentName(points.getStudent().getName())
                 .pointBalance(points.getPointBalance())
                 .totalPoints(points.getTotalPoints())
                 .totalSpent(points.getTotalSpent())

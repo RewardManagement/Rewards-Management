@@ -30,24 +30,8 @@ public class PointsService {
 
     
     @Transactional
-    public ResponseModel<List<PointsDTO>> getAllStudentsPoints() {
-        List<Points> pointsList = pointsRepository.findAllValidPoints(); // Use the modified query
-        if (pointsList.isEmpty()) {
-            throw new ResourceNotFoundException("No points records found.");
-        }
-    
-        List<PointsDTO> pointsDTOList = pointsList.stream()
-                .map(PointsMapper::toDTO)
-                .collect(Collectors.toList());
-    
-        return new ResponseModel<>(200, "SUCCESS", "Points data retrieved successfully.", pointsDTOList);
-    }    
-
-    
-    @Transactional
     public ResponseModel<?> getPoints(UUID studentId, UUID teacherId) {
         if (studentId != null) {
-            
             Optional<PointsDTO> points = pointsRepository.getPointsByStudentId(studentId);
             if (points.isEmpty()) {
                 throw new ResourceNotFoundException("No points found for student ID: " + studentId);
@@ -55,7 +39,6 @@ public class PointsService {
             return new ResponseModel<>(200, "SUCCESS", "Student points retrieved successfully.", points.get());
         } 
         else if (teacherId != null) {
-            // Fetch points for all students under a specific teacher
             List<PointsDTO> pointsList = pointsRepository.getPointsByTeacherId(teacherId);
             if (pointsList.isEmpty()) {
                 throw new ResourceNotFoundException("No students found under teacher ID: " + teacherId);
@@ -63,9 +46,18 @@ public class PointsService {
             return new ResponseModel<>(200, "SUCCESS", "Points for all students under teacher retrieved successfully.", pointsList);
         } 
         else {
-            throw new BadRequestException("Either studentId or teacherId must be provided.");
+            List<Points> pointsList = pointsRepository.findAllValidPoints();
+            if (pointsList.isEmpty()) {
+                throw new ResourceNotFoundException("No points records found.");
+            }
+
+            List<PointsDTO> pointsDTOList = pointsList.stream()
+                    .map(PointsMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            return new ResponseModel<>(200, "SUCCESS", "All students' points retrieved successfully.", pointsDTOList);
         }
-    }    
+    }
 
     @Transactional
     public ResponseModel<PointsDTO> updateStudentPoints(UUID studentId, int pointsToAdd, int pointsToSpend) {

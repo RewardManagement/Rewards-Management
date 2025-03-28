@@ -119,7 +119,7 @@ public class UserService {
             userRepository.save(newUser);
             if ("STUDENT".equalsIgnoreCase(roleName)) {
                 PointsDTO pointsDTO = PointsDTO.builder()
-                        .studentId(newUser.getId())
+                        .studentName(newUser.getName())
                         .pointBalance(0)
                         .totalPoints(0)
                         .totalSpent(0)
