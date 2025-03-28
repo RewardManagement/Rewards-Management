@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -120,6 +121,9 @@ public class UserService {
             if ("STUDENT".equalsIgnoreCase(roleName)) {
                 PointsDTO pointsDTO = PointsDTO.builder()
                         .studentName(newUser.getName())
+                        .profilePic(newUser.getProfilePicture() != null 
+                            ? Base64.getEncoder().encodeToString(newUser.getProfilePicture()) 
+                            : null) 
                         .pointBalance(0)
                         .totalPoints(0)
                         .totalSpent(0)
