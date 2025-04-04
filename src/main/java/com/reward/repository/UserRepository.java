@@ -37,4 +37,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u.profilePicture FROM User u WHERE u.id = :userId AND u.isDeleted = false")
     Optional<byte[]> findProfilePictureById(@Param("userId") UUID userId);
+
+    @Query("SELECT r.roleName FROM User u JOIN u.role r WHERE u.id = :userId")
+    String findRoleNameByUserId(@Param("userId") UUID userId);
+
 }

@@ -11,6 +11,7 @@ import com.reward.mapper.CertificatesMapper;
 import com.reward.repository.CertificateRepository;
 import com.reward.repository.UserRepository;
 import com.reward.responsemodel.ResponseModel;
+import com.reward.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,35 +30,59 @@ public class CertificatesService {
     private final UserRepository userRepository;
     private final EventService eventService;
     private final PointsService pointsService;  
+    private final JwtUtil jwtUtils; // Assuming you have a JwtUtil class for JWT operations
  
     @Transactional
     public ResponseModel<List<CertificatesDTO>> getAllCertificates(UUID studentId) {
+        UUID loggedInUserId = jwtUtils.extractUserIdFromToken(); // Extract from JWT
+        String role = userRepository.findRoleNameByUserId(loggedInUserId); // Fetch user role
+
         List<Certificates> certificates;
- 
+
+        // CASE 1: Specific studentId is provided
         if (studentId != null) {
             boolean studentExists = userRepository.existsByIdAndIsDeletedFalse(studentId);
             if (!studentExists) {
                 throw new ResourceNotFoundException("Student not found");
             }
- 
+
+            // ALLOWED IF:
+            // - Admin
+            // - Teacher
+            // - Student accessing their own certificates
+            if (
+                !role.equalsIgnoreCase("admin") &&
+                !role.equalsIgnoreCase("teacher") &&
+                !studentId.equals(loggedInUserId)
+            ) {
+                throw new UnauthorizedException("You are not authorized to view this student's certificates");
+            }
+
             certificates = certificateRepository.findByStudentIdAndIsDeletedFalse(studentId);
- 
             if (certificates.isEmpty()) {
                 throw new ResourceNotFoundException("No certificates found for this student");
             }
-        } else {
+        }
+
+        // CASE 2: No studentId — only Admin and Teacher can access ALL
+        else {
+            if (!role.equalsIgnoreCase("admin") && !role.equalsIgnoreCase("teacher")) {
+                throw new UnauthorizedException("Only Admin or Teacher can access all certificates");
+            }
+
             certificates = certificateRepository.findByIsDeletedFalse();
             if (certificates.isEmpty()) {
-                throw new ResourceNotFoundException("No certificates found ");
+                throw new ResourceNotFoundException("No certificates found");
             }
         }
- 
+
         List<CertificatesDTO> certificateDTOs = certificates.stream()
                 .map(certificatesMapper::toDTO)
                 .toList();
- 
+
         return ResponseModel.success(200, "Certificates retrieved successfully", certificateDTOs);
     }
+
  
     
  

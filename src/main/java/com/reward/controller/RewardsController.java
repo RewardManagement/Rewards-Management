@@ -24,7 +24,7 @@ public class RewardsController {
     public RewardsController(RewardsService rewardsService) {
         this.rewardsService = rewardsService;
     }
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping
     public ResponseEntity<ResponseModel<List<RewardsDTO>>> getAllRewards() {
         return ResponseEntity.ok(rewardsService.getAllRewards());

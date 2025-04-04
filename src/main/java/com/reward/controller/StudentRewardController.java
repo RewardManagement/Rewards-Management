@@ -21,7 +21,7 @@ public class StudentRewardController {
     }
 
     
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping("/{studentId}/rewards")
     public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
         return ResponseEntity.ok(studentRewardService.getStudentRewards(studentId));
