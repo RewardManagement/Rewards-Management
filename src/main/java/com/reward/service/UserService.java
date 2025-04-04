@@ -227,6 +227,7 @@ public class UserService {
                 responseData.put("token", token);
                 responseData.put("role", role);
                 responseData.put("userId", user.getId().toString()); // Include user ID
+                if (user.getTeacher() != null) responseData.put("teacherId", user.getTeacher().getId().toString()); // Include teacher ID
 
                 return ResponseModel.success(200, "Login successful", responseData);
             }
