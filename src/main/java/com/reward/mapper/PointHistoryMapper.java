@@ -21,6 +21,7 @@ public class PointHistoryMapper {
                 .id(pointHistory.getId())
                 .fileName(fileName) // ✅ Set dynamically
                 .pointsChanged(pointHistory.getPointsChanged())
+                .createdAt(pointHistory.getCreatedAt())
                 .build();
     }
 }
