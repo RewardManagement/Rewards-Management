@@ -34,7 +34,7 @@ public class UserDTO {
     @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
     private String phoneNo;
 
-    private UUID roleId; 
+    private String role; 
     
     private UUID teacherId;
 
