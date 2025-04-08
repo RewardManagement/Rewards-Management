@@ -12,7 +12,6 @@ import com.reward.responsemodel.ResponseModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,34 +29,57 @@ public class PointsService {
 
     
     @Transactional
-    public ResponseModel<?> getPoints(UUID studentId, UUID teacherId) {
-        if (studentId != null) {
-            Optional<PointsDTO> points = pointsRepository.getPointsByStudentId(studentId);
-            if (points.isEmpty()) {
-                throw new ResourceNotFoundException("No points found for student ID: " + studentId);
-            }
-            return new ResponseModel<>(200, "SUCCESS", "Student points retrieved successfully.", points.get());
-        } 
-        else if (teacherId != null) {
-            List<PointsDTO> pointsList = pointsRepository.getPointsByTeacherId(teacherId);
-            if (pointsList.isEmpty()) {
-                throw new ResourceNotFoundException("No students found under teacher ID: " + teacherId);
-            }
-            return new ResponseModel<>(200, "SUCCESS", "Points for all students under teacher retrieved successfully.", pointsList);
-        } 
-        else {
-            List<Points> pointsList = pointsRepository.findAllValidPoints();
-            if (pointsList.isEmpty()) {
-                throw new ResourceNotFoundException("No points records found.");
-            }
-
-            List<PointsDTO> pointsDTOList = pointsList.stream()
-                    .map(PointsMapper::toDTO)
-                    .collect(Collectors.toList());
-
-            return new ResponseModel<>(200, "SUCCESS", "All students' points retrieved successfully.", pointsDTOList);
+public ResponseModel<?> getPoints(UUID studentId, UUID teacherId) {
+    if (studentId != null) {
+        // Check if student exists and is not deleted
+        boolean studentExists = userRepository.existsByIdAndIsDeletedFalse(studentId);
+        if (!studentExists) {
+            throw new ResourceNotFoundException("Student not found or has been deleted: " + studentId);
         }
+
+        List<Points> pointsList = pointsRepository.findByStudentId(studentId);
+        if (pointsList.isEmpty()) {
+            throw new ResourceNotFoundException("No points found for student ID: " + studentId);
+        }
+
+        List<PointsDTO> pointsDTOList = pointsList.stream()
+                .map(PointsMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return new ResponseModel<>(200, "SUCCESS", "Student points retrieved successfully.", pointsDTOList);
+    } 
+    else if (teacherId != null) {
+        // Check if teacher exists and is not deleted
+        boolean teacherExists = userRepository.existsByIdAndIsDeletedFalse(teacherId);
+        if (!teacherExists) {
+            throw new ResourceNotFoundException("Teacher not found or has been deleted: " + teacherId);
+        }
+
+        List<Points> pointsList = pointsRepository.findByTeacherId(teacherId);
+        if (pointsList.isEmpty()) {
+            throw new ResourceNotFoundException("No students found under teacher ID: " + teacherId);
+        }
+
+        List<PointsDTO> pointsDTOList = pointsList.stream()
+                .map(PointsMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return new ResponseModel<>(200, "SUCCESS", "Points for all students under teacher retrieved successfully.", pointsDTOList);
+    } 
+    else {
+        List<Points> pointsList = pointsRepository.findAllValidPoints();
+        if (pointsList.isEmpty()) {
+            throw new ResourceNotFoundException("No points records found.");
+        }
+
+        List<PointsDTO> pointsDTOList = pointsList.stream()
+                .map(PointsMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return new ResponseModel<>(200, "SUCCESS", "All students' points retrieved successfully.", pointsDTOList);
     }
+}
+
 
     @Transactional
     public ResponseModel<PointsDTO> updateStudentPoints(UUID studentId, int pointsToAdd, int pointsToSpend) {

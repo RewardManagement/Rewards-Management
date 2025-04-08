@@ -39,7 +39,7 @@ public class BadgesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping(consumes = "multipart/form-data")
 public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
         @RequestParam(required = false) UUID badgeId,  
@@ -53,7 +53,7 @@ public ResponseEntity<ResponseModel<BadgesDTO>> saveOrUpdateBadge(
 
 
     // ✅ Soft delete a badge
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseModel<String>> deleteBadge(@PathVariable UUID id) {
         ResponseModel<String> response = badgesService.deleteBadge(id);

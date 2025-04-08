@@ -27,7 +27,7 @@ public class UserMapper {
                 .name(user.getName())
                 .email(user.getEmail())
                 .phoneNo(user.getPhoneNo())
-                .roleId(user.getRole() != null ? user.getRole().getId() : null)
+                .role(user.getRole() != null ? user.getRole().getRoleName() : null)
                 .teacherId(user.getTeacher() != null ? user.getTeacher().getId() : null)
                 .department(user.getDepartment())
                 .year(user.getYear())
@@ -49,8 +49,8 @@ public class UserMapper {
                 .build();
 
         // Assign Role (if provided)
-        if (userDTO.getRoleId() != null) {
-            Role role = roleRepository.findById(userDTO.getRoleId())
+        if (userDTO.getRole() != null) {
+            Role role = roleRepository.findByRoleName(userDTO.getRole())
                     .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
             user.setRole(role);
         }

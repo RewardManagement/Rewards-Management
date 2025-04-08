@@ -4,6 +4,7 @@ import com.reward.dto.PointHistoryDTO;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.PointHistoryService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class PointHistoryController {
         this.pointHistoryService = pointHistoryService;
     }
 
+    @PreAuthorize("hasAnyRole('STUDENT')")
     @GetMapping("/{studentId}")
     public ResponseEntity<ResponseModel<List<PointHistoryDTO>>> getPointHistoryByStudent(@PathVariable UUID studentId) {
         return ResponseEntity.ok(pointHistoryService.getPointHistoryByStudent(studentId));

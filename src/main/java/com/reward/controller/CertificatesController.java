@@ -31,7 +31,7 @@ public class CertificatesController {
         return ResponseEntity.ok(certificatesService.getAllCertificates(userId));
     }
     
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @GetMapping("/{certificateId}")
     public ResponseEntity<ResponseModel<CertificatesDTO>> getCertificateById(@PathVariable UUID certificateId) {
         return ResponseEntity.ok(certificatesService.getCertificateById(certificateId));
@@ -46,7 +46,7 @@ public class CertificatesController {
         return ResponseEntity.ok(certificatesService.createCertificate(studentId, file));
     }
  
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @DeleteMapping("/{certificateId}")
     public ResponseEntity<ResponseModel<String>> deleteCertificate(@PathVariable UUID certificateId) {
         return ResponseEntity.ok(certificatesService.softDeleteCertificate(certificateId));

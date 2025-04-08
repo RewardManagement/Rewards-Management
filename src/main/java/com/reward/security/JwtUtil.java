@@ -1,13 +1,15 @@
 package com.reward.security;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
 
 import com.reward.exception.UnauthorizedException;
+import com.reward.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
-
+import org.springframework.security.core.Authentication;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -17,6 +19,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.io.Decoders;
 
+import java.util.UUID;
 import java.util.Set;
 import java.util.Date;
 import java.util.Map;
@@ -35,6 +38,12 @@ public class JwtUtil {
     private SecretKey secretKey;
 
     private final Set<String> invalidatedTokens = ConcurrentHashMap.newKeySet(); 
+
+    private final UserRepository userRepository;
+
+    public JwtUtil(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public String generateToken(String email){
 
@@ -114,6 +123,26 @@ public class JwtUtil {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String extractTokenFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getCredentials() instanceof String token) {
+            return token;
+        }
+        throw new UnauthorizedException("Token not found in security context");
+    }
+    
+
+    
+    public UUID extractUserIdFromToken() {
+        // ✅ Automatically extract token from SecurityContext
+        String token = extractTokenFromSecurityContext();
+    
+        String email = extractUserName(token); // subject = email
+        return userRepository.findByEmailAndIsDeletedFalse(email)
+            .orElseThrow(() -> new UnauthorizedException("Invalid or unauthorized user"))
+            .getId();
     }
     
 }

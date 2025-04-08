@@ -36,7 +36,7 @@ public class StudentBadgesController {
     
 
     // Get all badges assigned to a student
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping("/{studentId}/badges")
     
     public ResponseEntity<ResponseModel<List<StudentBadges>>> getBadgesByStudentId(@PathVariable UUID studentId) {

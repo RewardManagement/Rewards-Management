@@ -18,17 +18,23 @@ public interface PointsRepository extends JpaRepository<Points, UUID> {
     
     Optional<Points> findByStudent(User student);
 
-    
-    List<Points> findByStudentId(UUID studentId);
-
     @Query("SELECT p FROM Points p WHERE p.student.isDeleted = false")
     List<Points> findAllValidPoints();    
    
-    @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.name, p.pointBalance, p.totalPoints, p.totalSpent) " +
-           "FROM Points p WHERE p.student.id = :studentId")
+    @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.name, '', p.pointBalance, p.totalPoints, p.totalSpent) " +
+       "FROM Points p WHERE p.student.id = :studentId")
     Optional<PointsDTO> getPointsByStudentId(@Param("studentId") UUID studentId);
 
-    @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.name, p.pointBalance, p.totalPoints, p.totalSpent) " +
-           "FROM Points p WHERE p.student.teacher.id = :teacherId")
+    @Query("SELECT new com.reward.dto.PointsDTO(p.id, p.student.name, '', p.pointBalance, p.totalPoints, p.totalSpent) " +
+       "FROM Points p WHERE p.student.teacher.id = :teacherId")
     List<PointsDTO> getPointsByTeacherId(@Param("teacherId") UUID teacherId);
+
+    @Query("SELECT p FROM Points p WHERE p.student.id = :studentId AND p.student.isDeleted = false")
+    List<Points> findByStudentId(@Param("studentId") UUID studentId);
+
+    @Query("SELECT p FROM Points p WHERE p.student.teacher.id = :teacherId AND p.student.isDeleted = false")
+    List<Points> findByTeacherId(@Param("teacherId") UUID teacherId);
+
+
+
 }
