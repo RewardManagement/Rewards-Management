@@ -1,6 +1,8 @@
 package com.reward.dto;
  
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 import jakarta.validation.constraints.*;
  
@@ -12,8 +14,7 @@ public class CertificatesDTO {
  
     private UUID id;
  
-    @NotNull(message = "Student ID is required")
-    private UUID studentId;
+    private String studentName;
  
     @NotBlank(message = "Certificate is required")
     private String fileData;
@@ -25,4 +26,5 @@ public class CertificatesDTO {
     private String status;
  
     private Integer points;
+    private LocalDateTime createdAt;
 }

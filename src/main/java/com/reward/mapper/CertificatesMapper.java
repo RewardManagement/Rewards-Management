@@ -12,11 +12,12 @@ public class CertificatesMapper {
     public CertificatesDTO toDTO(Certificates certificates) {
         return CertificatesDTO.builder()
                 .id(certificates.getId())
-                .studentId(certificates.getStudent() != null ? certificates.getStudent().getId() : null)
+                .studentName(certificates.getStudent() != null ? certificates.getStudent().getName() : null)
                 .category(certificates.getCategory())
                 .status(certificates.getStatus())
                 .points(certificates.getPoints())
                 .fileName(certificates.getFileName())
+                .createdAt(certificates.getCreatedAt())
                 .fileData(certificates.getFileData() != null
                     ? Base64.getEncoder().encodeToString(certificates.getFileData())  
                     : null)
