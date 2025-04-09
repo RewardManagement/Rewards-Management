@@ -1,6 +1,6 @@
 package com.reward.controller;
 
-import com.reward.dto.StudentRewardDTO;
+import com.reward.dto.RewardsDTO;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.StudentRewardService;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class StudentRewardController {
     
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping("/{studentId}/rewards")
-    public ResponseEntity<ResponseModel<List<StudentRewardDTO>>> getStudentRewards(@PathVariable UUID studentId) {
+    public ResponseEntity<ResponseModel<List<RewardsDTO>>> getStudentRewards(@PathVariable UUID studentId) {
         return ResponseEntity.ok(studentRewardService.getStudentRewards(studentId));
     }    
 
