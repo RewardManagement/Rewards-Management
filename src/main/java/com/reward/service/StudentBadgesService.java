@@ -1,9 +1,11 @@
 package com.reward.service;
 
+import com.reward.dto.BadgesDTO;
 import com.reward.entity.*;
 import com.reward.exception.BadRequestException;
 import com.reward.exception.AlreadyExistsException;
 import com.reward.exception.ResourceNotFoundException;
+import com.reward.mapper.BadgesMapper;
 import com.reward.repository.StudentBadgesRepository;
 import com.reward.repository.BadgesRepository;
 import com.reward.repository.UserRepository;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentBadgesService {
@@ -86,23 +89,31 @@ public class StudentBadgesService {
     }
 
     // Get all badges assigned to a student
-public ResponseModel<List<StudentBadges>> getBadgesByStudentId(UUID studentId) {
-        // Check if student exists
-        if (!userRepository.existsById(studentId)) {
-            throw new ResourceNotFoundException("Student not found with ID: " + studentId);
-        }
-
-        // Fetch assigned badges
-        List<StudentBadges> badges = studentBadgesRepository.findByStudentId(studentId);
-
-        // If no badges are found, return an error response
-        if (badges.isEmpty()) {
-            throw new ResourceNotFoundException("Badges not found with ID: " + studentId);
-        }
-
-        // Return success response with badge data
-        return ResponseModel.success(HttpStatus.OK.value(), "Badges retrieved successfully!", badges);
+public ResponseModel<List<BadgesDTO>> getBadgesByStudentId(UUID studentId) {
+    // Check if student exists
+    if (!userRepository.existsById(studentId)) {
+        throw new ResourceNotFoundException("Student not found with ID: " + studentId);
     }
+
+    // Fetch assigned badges with badge details
+    List<StudentBadges> studentBadges = studentBadgesRepository.findByStudentId(studentId);
+
+    if (studentBadges.isEmpty()) {
+        throw new ResourceNotFoundException("No badges found for student ID: " + studentId);
+    }
+
+    // Extract and map the badge information
+    List<BadgesDTO> badgeDTOs = studentBadges.stream()
+        .map(StudentBadges::getBadge)  // Extract the Badges entity
+        .map(BadgesMapper::toDTO)      // Convert to BadgesDTO
+        .collect(Collectors.toList());
+
+    return ResponseModel.success(
+        HttpStatus.OK.value(),
+        "Student badges retrieved successfully",
+        badgeDTOs
+    );
+}
 
 // Get all badges assigned by a teacher
 public ResponseModel<List<StudentBadges>> getBadgesByTeacherId(UUID teacherId) {

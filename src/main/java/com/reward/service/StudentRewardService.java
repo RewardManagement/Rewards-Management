@@ -2,21 +2,26 @@ package com.reward.service;
 
 import com.reward.entity.StudentReward;
 import com.reward.entity.StudentRewardId;
+import com.reward.dto.RewardsDTO;
 import com.reward.dto.StudentRewardDTO;
 import com.reward.entity.Rewards;
 import com.reward.entity.User;
 import com.reward.exception.ResourceNotFoundException;
+import com.reward.mapper.RewardsMapper;
 import com.reward.mapper.StudentRewardMapper;
 import com.reward.exception.BadRequestException; 
 import com.reward.repository.RewardsRepository;
 import com.reward.repository.StudentRewardRepository;
 import com.reward.repository.UserRepository;
 import com.reward.responsemodel.ResponseModel;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentRewardService {
@@ -35,22 +40,32 @@ public class StudentRewardService {
     }
 
     @Transactional
-    public ResponseModel<List<StudentRewardDTO>> getStudentRewards(UUID studentId) {
-        // ✅ Check if the student exists in the User table and is not deleted
-        boolean studentExists = userRepository.existsByIdAndIsDeletedFalse(studentId);
-        if (!studentExists) {
-            throw new ResourceNotFoundException("Student not found with ID: " + studentId);
-        }
-    
-        // ✅ Fetch the rewards from StudentRewardRepository
-        List<StudentRewardDTO> rewardDTOs = studentRewardRepository.findStudentRewardsByStudentId(studentId);
-    
-        if (rewardDTOs.isEmpty()) {
-            throw new ResourceNotFoundException("No rewards found for student with ID: " + studentId);
-        }
-    
-        return new ResponseModel<>(200, "SUCCESS", "Rewards retrieved successfully", rewardDTOs);
-    }    
+public ResponseModel<List<RewardsDTO>> getStudentRewards(UUID studentId) {
+    // Check if student exists
+    boolean studentExists = userRepository.existsByIdAndIsDeletedFalse(studentId);
+    if (!studentExists) {
+        throw new ResourceNotFoundException("Student not found with ID: " + studentId);
+    }
+
+    // Fetch student rewards with reward details
+    List<StudentReward> studentRewards = studentRewardRepository.findByStudentId(studentId);
+
+    if (studentRewards.isEmpty()) {
+        throw new ResourceNotFoundException("No rewards found for student with ID: " + studentId);
+    }
+
+    // Map to RewardsDTO
+    List<RewardsDTO> rewardDTOs = studentRewards.stream()
+        .map(StudentReward::getReward)  // Extract the Rewards entity
+        .map(RewardsMapper::toDTO)       // Convert to RewardsDTO
+        .collect(Collectors.toList());
+
+    return ResponseModel.success(
+        HttpStatus.OK.value(),
+        "Rewards retrieved successfully",
+        rewardDTOs
+    );
+}
     
 
     // ✅ Redeem a reward for a student (Using Entity)

@@ -1,5 +1,6 @@
 package com.reward.controller;
 
+import com.reward.dto.BadgesDTO;
 import com.reward.entity.StudentBadges;
 import com.reward.responsemodel.ResponseModel;
 import com.reward.service.StudentBadgesService;
@@ -39,8 +40,8 @@ public class StudentBadgesController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @GetMapping("/{studentId}/badges")
     
-    public ResponseEntity<ResponseModel<List<StudentBadges>>> getBadgesByStudentId(@PathVariable UUID studentId) {
-        ResponseModel<List<StudentBadges>> response = studentBadgesService.getBadgesByStudentId(studentId);
+    public ResponseEntity<ResponseModel<List<BadgesDTO>>> getBadgesByStudentId(@PathVariable UUID studentId) {
+        ResponseModel<List<BadgesDTO>> response = studentBadgesService.getBadgesByStudentId(studentId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
