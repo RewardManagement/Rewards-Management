@@ -14,4 +14,5 @@ public class PointHistoryDTO {
     private String fileName;
     private Integer pointsChanged;  
     private LocalDateTime createdAt;  
+    private Boolean isReward;
 }
